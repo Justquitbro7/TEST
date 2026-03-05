@@ -1,243 +1,375 @@
-let twitchWS = null;
-let kickWS = null; 
-let ttsQueue = [];
-let isSpeaking = false;
-let voicesList = [];
-let messageHistory = new Set(); 
-let activeTimers = [];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GX292BHWKE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-GX292BHWKE');
+    </script>
 
-const KICK_BOTS = ["botrix", "kickbot", "streamelements", "nightbot", "moobot"];
+    <meta charset="UTF-8">
+    <title>JAILEX HUD | v1.9.1 OFFICIAL</title>
+    <script src="https://js.pusher.com/8.4.0-rc2/pusher.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@400;700&display=swap">
+    <style>
+        :root { --blue: #00d2ff; --dark: #060e1a; --glass: rgba(10, 25, 47, 0.9); --bears-orange: #C83803; --kick-green: #53FC18; }
+        body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        .sidebar { width: 280px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(0,210,255,0.1); padding: 30px 20px; backdrop-filter: blur(15px); display: flex; flex-direction: column; z-index: 100; }
+        .logo { text-align: center; margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; } 
+        .logo h1 { font-family: 'Orbitron'; color: var(--blue); margin: 0; letter-spacing: 4px; font-size: 45px; text-transform: uppercase; }
+        .mission-stmt { font-size: 10px; opacity: 1; letter-spacing: 1px; font-weight: 700; margin-top: 5px; color: white; text-transform: uppercase; text-align: center; font-style: italic; }
+        .version-tag { font-size: 11px; color: var(--blue); font-weight: 900; margin-top: 10px; font-family: 'Orbitron'; }
+        
+        .tab-menu { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+        .tab-btn { background: none; border: none; color: white; padding: 14px; text-align: left; cursor: pointer; font-weight: 700; border-radius: 8px; text-transform: uppercase; font-size: 14px; opacity: 1; letter-spacing: 1px; transition: 0.2s; }
+        .tab-btn.active { color: var(--blue); background: rgba(0,210,255,0.1); border-left: 4px solid var(--blue); }
+        .tab-btn:hover { background: rgba(255,255,255,0.05); }
+        
+        .sidebar-footer { margin-top: auto; text-align: center; font-size: 9px; opacity: 0.7; padding-top: 20px; border-top: 1px solid rgba(0,210,255,0.1); }
+        .sidebar-footer p { margin: 5px 0; letter-spacing: 0.5px; }
+        .sidebar-footer a { color: var(--blue); text-decoration: none; font-weight: bold; }
+        .sidebar-footer a:hover { text-decoration: underline; }
 
-async function loadVercelVars() {
-    try {
-        const response = await fetch('/api/config');
-        const envConfig = await response.json();
-        if(envConfig.twitchChannel) document.getElementById('twitchInput').value = envConfig.twitchChannel;
-        if(envConfig.kickChannel) document.getElementById('kickInput').value = envConfig.kickChannel;
-    } catch (error) {
-        console.error("Failed to load Vercel variables", error);
-    }
-}
+        .main { flex: 1; padding: 40px; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; }
+        .panel { display: none; width: 100%; max-width: 850px; animation: slideUp 0.3s ease-out; }
+        .panel.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .card { background: var(--glass); border: 1px solid rgba(0,210,255,0.2); padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom: 20px; }
+        input[type="text"], input[type="number"], select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,210,255,0.2); padding: 12px; border-radius: 10px; color: white; margin-bottom: 15px; outline: none; box-sizing: border-box; }
+        
+        .primary-btn { width: 100%; border: none; padding: 18px; color: white; font-weight: 900; border-radius: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
+        .init-btn { background: var(--kick-green); color: black; margin-top: 10px; }
+        
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+        
+        #chat-preview { height: 300px; background:#000; padding:15px; border-radius:10px; font-family:monospace; font-size: 13px; overflow-y:auto; border: 1px solid rgba(255,255,255,0.1); margin-top: 15px; }
+        #auditLog { background:#000; color:#00ffcc; resize:none; font-family:monospace; font-size:12px; width: 100%; height: 120px; border: 1px solid rgba(255,255,255,0.1); padding:10px; margin-top: 10px; }
+        
+        /* DIRECTION BOX STYLES */
+        .dir-box { background: rgba(0,0,0,0.4); border: 1px dashed var(--blue); padding: 15px; border-radius: 12px; margin-top: 25px; font-size: 11px; color: #ccc; line-height: 1.6; }
+        .dir-box h4 { color: var(--blue); margin: 0 0 10px 0; font-family: 'Orbitron'; font-size: 12px; letter-spacing: 1px; }
+        .dir-box ol { margin: 0; padding-left: 20px; }
+        .dir-box li { margin-bottom: 5px; }
+    </style>
+</head>
+<body>
 
-function log(m) {
-    const audit = document.getElementById('auditLog');
-    if (audit) { audit.value += `> ${m}\n`; audit.scrollTop = audit.scrollHeight; }
-}
+    <div class="sidebar">
+        <div class="logo">
+            <h1>JAILEX</h1>
+            <div class="mission-stmt">STREAMING MADE EASY</div>
+            <div class="version-tag">V 1.9.1</div>
+        </div>
+        <nav class="tab-menu">
+            <button id="btn-sync" class="tab-btn active" onclick="showTab('sync')">QUICKSYNC ENGINE</button>
+            <button id="btn-dash" class="tab-btn" onclick="showTab('dash')">DASHBOARD</button>
+            <button id="btn-audio" class="tab-btn" onclick="showTab('audio')">AUDIO ENGINE</button>
+            <button id="btn-alerts" class="tab-btn" onclick="showTab('alerts')">ALERTS</button>
+            <button id="btn-voice" class="tab-btn" onclick="showTab('voice')">VOICE COMMANDS</button>
+            <button id="btn-overlay" class="tab-btn" onclick="showTab('overlay')">CHAT OVERLAY</button>
+            <button id="btn-camera" class="tab-btn" onclick="showTab('camera')">WEB CAMERA</button>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <p>&copy; 2026 JAILEX STUDIOS<br>All rights reserved.</p>
+            <p>Contact Us: <br><a href="mailto:jailexstudios@gmail.com">jailexstudios@gmail.com</a></p>
+        </div>
+    </div>
 
-async function fetchKickID(username) {
-    const target = `https://kick.com/api/v2/channels/${username}`;
-    try {
-        const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`);
-        const data = await res.json();
-        if (data.chatroom && data.chatroom.id) return data.chatroom.id;
-    } catch (e) {}
-    try {
-        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(target)}`);
-        const json = await res.json();
-        const data = JSON.parse(json.contents);
-        if (data.chatroom && data.chatroom.id) return data.chatroom.id;
-    } catch (e) {}
-    return null;
-}
+    <div class="main">
+        <div id="sync" class="panel active">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); text-align:center; margin-top:0;">QUICKSYNC ENGINE</h2>
+                <input type="text" id="twitchInput" placeholder="TWITCH USERNAME">
+                <input type="text" id="kickInput" placeholder="KICK USERNAME">
+                <button class="primary-btn init-btn" onclick="masterInitialize()">ENGAGE ENGINE</button>
+                
+                <div class="dir-box">
+                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
+                    <ol>
+                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
+                        <li><strong>Add Layer:</strong> Click the green + icon (Add Layer) next to the "Layers" tab on the left side.</li>
+                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
+                        <li><strong>Configure Source:</strong> Select whether you want to share your entire screen, a specific application window, or a browser tab.</li>
+                        <li><strong>Enable Audio:</strong> Tick the "Share Audio" box if you want to capture audio from the shared content.</li>
+                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
 
-async function connectKick(username) {
-    if (!username) return;
-    if (kickWS) { kickWS.close(); log("Resetting Kick Bridge..."); }
-    const chatroomId = await fetchKickID(username);
-    if (!chatroomId) { log(`Kick Error: ID not found.`); return; }
-    log(`Kick: ID ${chatroomId} Secured.`);
-    kickWS = new WebSocket("wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false");
-    kickWS.onopen = () => { log("Kick: Socket Opened."); };
-    kickWS.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.event === "pusher:connection_established") {
-            kickWS.send(JSON.stringify({ event: "pusher:subscribe", data: { channel: `chatrooms.${chatroomId}.v2` } }));
+        <div id="dash" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">SYSTEM DASHBOARD</h2>
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                    <div id="tw-light" style="background:rgba(145,70,255,0.1); border:1px solid #9146FF; padding:10px; border-radius:10px; width:48%; text-align:center; color:#9146FF; font-weight:bold;">TWITCH: OFF</div>
+                    <div id="ki-light" style="background:rgba(83,252,24,0.1); border:1px solid #53FC18; padding:10px; border-radius:10px; width:48%; text-align:center; color:#53FC18; font-weight:bold;">KICK: OFF</div>
+                </div>
+                <div id="chat-preview"></div>
+                <textarea id="auditLog" readonly></textarea>
+
+                <div class="dir-box">
+                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
+                    <ol>
+                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
+                        <li><strong>Add Layer:</strong> Click the green + icon (Add Layer) next to the "Layers" tab on the left side.</li>
+                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
+                        <li><strong>Configure Source:</strong> Select whether you want to share your entire screen, a specific application window, or a browser tab.</li>
+                        <li><strong>Enable Audio:</strong> Tick the "Share Audio" box if you want to capture audio from the shared content.</li>
+                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div id="audio" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">AUDIO PARAMETERS</h2>
+                <div class="toggle-row">
+                    <label style="font-size:12px; font-weight:bold;">READ USERNAME</label>
+                    <input type="checkbox" id="readUserToggle" checked style="width:auto; margin:0;">
+                </div>
+                <div class="toggle-row">
+                    <label style="font-size:12px; font-weight:bold;">ENABLE TTS</label>
+                    <input type="checkbox" id="ttsEnabled" checked style="width:auto; margin:0;">
+                </div>
+                <label style="font-size:11px; color:var(--blue); display:block; margin-bottom:5px;">AI VOICE SELECTION (LOCAL SYSTEM)</label>
+                <select id="voiceSelect"><option value="">Loading voices...</option></select>
+                <button class="primary-btn" style="background:var(--blue); color:black; height:45px; padding:0; margin-top:15px;" onclick="testAudio()">TEST AUDIO</button>
+
+                <div class="dir-box">
+                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
+                    <ol>
+                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
+                        <li><strong>Add Layer:</strong> Click the green + icon (Add Layer) next to the "Layers" tab on the left side.</li>
+                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
+                        <li><strong>Configure Source:</strong> Select whether you want to share your entire screen, a specific application window, or a browser tab.</li>
+                        <li><strong>Enable Audio:</strong> Tick the "Share Audio" box if you want to capture audio from the shared content.</li>
+                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div id="alerts" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">STREAM ALERTS</h2>
+                <p style="font-size: 11px; opacity: 0.8; margin-bottom: 20px;">Configure on-screen and audio alerts for your stream.</p>
+                <button class="primary-btn" style="background:var(--kick-green); color:black; margin-top:10px;">SAVE ALERT SETTINGS</button>
+            </div>
+        </div>
+
+        <div id="voice" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">VOICE COMMANDS</h2>
+                <input type="text" id="cmdUser" placeholder="VIRTUAL USERNAME (e.g. JAILEX)">
+                <input type="text" id="cmdMessage" placeholder="MESSAGE TO REPEAT">
+                <input type="number" id="cmdInterval" placeholder="INTERVAL (MINUTES)" min="1">
+                <button class="primary-btn" style="background:var(--kick-green); color:black;" onclick="addVoiceCommand()">START AUTO-COMMAND</button>
+                <div id="activeCommands" style="margin-top:20px;"></div>
+
+                <div class="dir-box">
+                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
+                    <ol>
+                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
+                        <li><strong>Add Layer:</strong> Click the green + icon (Add Layer) next to the "Layers" tab on the left side.</li>
+                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
+                        <li><strong>Configure Source:</strong> Select whether you want to share your entire screen, a specific application window, or a browser tab.</li>
+                        <li><strong>Enable Audio:</strong> Tick the "Share Audio" box if you want to capture audio from the shared content.</li>
+                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div id="overlay" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">OVERLAY GENERATOR</h2>
+                <button class="primary-btn" style="background:var(--blue); color:black; margin-top:15px;" onclick="copyOverlayUrl()">COPY OVERLAY URL</button>
+            </div>
+        </div>
+
+        <div id="camera" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0; margin-bottom: 25px; text-align: center;">WEB CAMERA</h2>
+                <button id="init-cam-btn" class="primary-btn" style="background: var(--blue); color: black;" onclick="initMobileCam()">INITIALIZE CAMERA</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- KICK BLUEPRINT LOGIC INTEGRATED ---
+        let twitchWS = null;
+        let kickWS = null; 
+        let ttsQueue = [];
+        let isSpeaking = false;
+        let voicesList = [];
+        let messageHistory = new Set(); // For Kick blueprint duplicate detection
+        let activeTimers = [];
+
+        const KICK_BOTS = [
+          "botrix", "kickbot", "kick", "streamelements", "nightbot", "moobot",
+          "fossabot", "wizebot", "deepbot", "coebot", "phantombot", "ankhbot",
+          "vivbot", "streamlabs", "cloudbot", "stay_hydrated_bot", "restreambot",
+          "sery_bot", "commanderroot", "lurxx", "electricalskateboard",
+          "electricallongboard", "alizeepathfinder", "virgoproz", "creatisbot",
+          "slocool", "p0lizei_", "lolrankbot", "0ax2", "thepositivebot",
+          "communityshowcase",
+        ];
+
+        function isKickBot(username) {
+            const lower = username.toLowerCase().trim();
+            return KICK_BOTS.includes(lower) || lower.endsWith("bot") || lower.endsWith("_bot") || lower.includes("bot_");
         }
-        if (data.event === "pusher_internal:subscription_succeeded") {
-            log("Kick: Bridge Armed.");
-            document.getElementById('ki-light').innerText = "KICK: ONLINE";
-            document.getElementById('ki-light').style.background = "rgba(83,252,24,0.3)";
-        }
-        if (data.event === "App\\Events\\ChatMessageEvent") {
-            const messageData = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
-            const user = (messageData.sender && messageData.sender.username) ? messageData.sender.username : "Unknown";
-            const msg = messageData.content || "";
-            if (!KICK_BOTS.includes(user.toLowerCase())) { handleMessage(user, msg, 'KICK'); }
-        }
-    };
-}
 
-function connectTwitch(username) {
-    if (!username) return;
-    if (twitchWS) { 
-        log("Twitch: Terminating old bridge...");
-        twitchWS.onmessage = null;
-        twitchWS.close(); 
-        twitchWS = null; 
-    }
-    twitchWS = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
-    twitchWS.onopen = () => {
-        twitchWS.send('PASS oauth:read_only');
-        twitchWS.send('NICK justinfan' + Math.floor(Math.random() * 99999));
-        twitchWS.send(`JOIN #${username.toLowerCase()}`);
-        log(`Twitch: Bridge Armed.`);
-        document.getElementById('tw-light').innerText = "TWITCH: ONLINE";
-        document.getElementById('tw-light').style.background = "rgba(145,70,255,0.3)";
-    };
-    twitchWS.onmessage = (e) => {
-        const lines = e.data.split('\r\n');
-        lines.forEach(line => {
-            if (line.includes('PING')) twitchWS.send('PONG :tmi.twitch.tv');
-            if (line.includes('PRIVMSG')) {
-                const user = line.split('!')[0].substring(1);
-                const msg = line.split('PRIVMSG')[1].split(':')[1].trim();
-                const msgId = `${user}-${msg}`.substring(0, 50);
-                if (!messageHistory.has(msgId)) {
-                    messageHistory.add(msgId);
-                    handleMessage(user, msg, 'TWITCH');
-                    if (messageHistory.size > 50) {
-                        const firstItem = messageHistory.values().next().value;
-                        messageHistory.delete(firstItem);
+        function log(m) {
+            const audit = document.getElementById('auditLog');
+            if (audit) { audit.value += `> ${m}\n`; audit.scrollTop = audit.scrollHeight; }
+        }
+
+        async function fetchKickID(username) {
+            // Updated to try multiple proxy bridges for reliability
+            const target = `https://kick.com/api/v2/channels/${username}`;
+            const proxies = [
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`,
+                `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`
+            ];
+
+            for (let url of proxies) {
+                try {
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    // Handle AllOrigins wrapper if used
+                    const finalData = data.contents ? JSON.parse(data.contents) : data;
+                    if (finalData.chatroom?.id) return finalData.chatroom.id;
+                } catch (e) { console.warn("Proxy failed, trying next..."); }
+            }
+            return null;
+        }
+
+        async function connectKick(username) {
+            if (!username) return;
+            if (kickWS) { kickWS.close(); log("Resetting Kick Bridge..."); }
+            
+            const chatroomId = await fetchKickID(username);
+            if (!chatroomId) { log(`Kick Error: ID not found.`); return; }
+            
+            log(`Kick: ID ${chatroomId} Secured.`);
+            kickWS = new WebSocket("wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false");
+            
+            kickWS.onopen = () => { log("Kick: Socket Opened."); };
+            
+            kickWS.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.event === "pusher:connection_established") {
+                    kickWS.send(JSON.stringify({ event: "pusher:subscribe", data: { channel: `chatrooms.${chatroomId}.v2` } }));
+                }
+                
+                if (data.event === "pusher_internal:subscription_succeeded") {
+                    log("Kick: Bridge Armed.");
+                    document.getElementById('ki-light').innerText = "KICK: ONLINE";
+                    document.getElementById('ki-light').style.background = "rgba(83,252,24,0.3)";
+                }
+                
+                if (data.event === "App\\Events\\ChatMessageEvent") {
+                    const msgData = JSON.parse(data.data);
+                    const user = msgData.sender?.username || "Unknown";
+                    const content = msgData.content || "";
+                    const mID = msgData.id;
+
+                    // Blueprint duplicate/bot filtering
+                    if (!messageHistory.has(mID) && !isKickBot(user)) {
+                        messageHistory.add(mID);
+                        handleMessage(user, content, 'KICK');
+                        if (messageHistory.size > 100) {
+                            const first = messageHistory.values().next().value;
+                            messageHistory.delete(first);
+                        }
                     }
                 }
+            };
+        }
+
+        function connectTwitch(username) {
+            if (!username) return;
+            twitchWS = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+            twitchWS.onopen = () => {
+                twitchWS.send('PASS oauth:read_only');
+                twitchWS.send('NICK justinfan' + Math.floor(Math.random() * 99999));
+                twitchWS.send(`JOIN #${username.toLowerCase()}`);
+                log(`Twitch: Bridge Armed.`);
+                document.getElementById('tw-light').innerText = "TWITCH: ONLINE";
+                document.getElementById('tw-light').style.background = "rgba(145,70,255,0.3)";
+            };
+            twitchWS.onmessage = (e) => {
+                if (e.data.includes('PRIVMSG')) {
+                    const user = e.data.split('!')[0].substring(1);
+                    const msg = e.data.split('PRIVMSG')[1].split(':')[1].trim();
+                    handleMessage(user, msg, 'TWITCH');
+                }
+            };
+        }
+
+        async function masterInitialize() {
+            log("JAILEX: Engaging Protocols...");
+            const tw = document.getElementById('twitchInput').value.trim();
+            const ki = document.getElementById('kickInput').value.trim();
+            showTab('dash');
+            if (tw) connectTwitch(tw);
+            if (ki) await connectKick(ki);
+            window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
+        }
+
+        function handleMessage(user, msg, platform) {
+            const preview = document.getElementById('chat-preview');
+            const color = platform === 'TWITCH' ? '#9146FF' : '#53FC18';
+            preview.innerHTML += `<div><strong style="color:${color}">[${platform}] ${user}:</strong> ${msg}</div>`;
+            preview.scrollTop = preview.scrollHeight;
+
+            if (document.getElementById('ttsEnabled').checked) {
+                const readUser = document.getElementById('readUserToggle').checked;
+                const text = readUser ? `${user} says ${msg}` : msg;
+                ttsQueue.push(text);
             }
-        });
-    };
-}
+        }
 
-window.masterInitialize = function() {
-    log("JAILEX: Engaging Protocols...");
-    const tw = document.getElementById('twitchInput').value.trim();
-    const ki = document.getElementById('kickInput').value.trim();
-    showTab('dash');
-    if (tw) connectTwitch(tw);
-    if (ki) connectKick(ki);
-    ttsQueue.push("Engine engaged.");
-    window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
-    generateOverlayUrl(tw, ki);
-}
+        setInterval(() => {
+            if (isSpeaking || ttsQueue.length === 0) return;
+            isSpeaking = true;
+            const utterance = new SpeechSynthesisUtterance(ttsQueue.shift());
+            const voiceIdx = document.getElementById('voiceSelect').value;
+            if (voicesList[voiceIdx]) utterance.voice = voicesList[voiceIdx];
+            utterance.onend = () => { isSpeaking = false; };
+            window.speechSynthesis.speak(utterance);
+        }, 100);
 
-window.handleMessage = function(user, msg, platform) {
-    const preview = document.getElementById('chat-preview');
-    const color = platform === 'TWITCH' ? '#9146FF' : '#53FC18';
-    preview.innerHTML += `<div><strong style="color:${color}">[${platform}] ${user}:</strong> ${msg}</div>`;
-    preview.scrollTop = preview.scrollHeight;
+        function showTab(id) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('btn-' + id).classList.add('active');
+        }
 
-    if (document.getElementById('ttsEnabled').checked && !msg.startsWith('!')) {
-        const readUser = document.getElementById('readUserToggle').checked;
-        const textToSpeak = readUser ? `${user} says ${msg}` : msg;
-        ttsQueue.push(textToSpeak);
-    }
-}
+        function loadVoices() {
+            voicesList = window.speechSynthesis.getVoices();
+            const s = document.getElementById('voiceSelect');
+            if (s && voicesList.length > 0) {
+                s.innerHTML = ''; 
+                voicesList.forEach((v, i) => { s.innerHTML += `<option value="${i}">${v.name}</option>`; }); 
+            }
+        }
 
-setInterval(() => {
-    if (isSpeaking || ttsQueue.length === 0) return;
-    isSpeaking = true;
-    const next = ttsQueue.shift();
-    const utterance = new SpeechSynthesisUtterance(next);
-    const voiceIdx = document.getElementById('voiceSelect').value;
-    if (voicesList[voiceIdx]) utterance.voice = voicesList[voiceIdx];
-    utterance.onend = () => { isSpeaking = false; };
-    utterance.onerror = () => { isSpeaking = false; };
-    window.speechSynthesis.speak(utterance);
-}, 100);
-
-window.addVoiceCommand = function() {
-    const user = document.getElementById('cmdUser').value.trim();
-    const msg = document.getElementById('cmdMessage').value.trim();
-    const interval = parseInt(document.getElementById('cmdInterval').value) * 60000;
-    if (!msg || isNaN(interval)) { alert("Please enter a message and time."); return; }
-    const timerId = setInterval(() => {
-        const finalSpeech = user ? `${user} says ${msg}` : msg;
-        ttsQueue.push(finalSpeech);
-        log(`Auto-Command Fired: ${finalSpeech}`);
-    }, interval);
-    activeTimers.push({ timerId, msg, interval: interval/60000 });
-    updateCommandList();
-}
-
-window.updateCommandList = function() {
-    const list = document.getElementById('activeCommands');
-    list.innerHTML = activeTimers.map((t, i) => `
-        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
-            <span>"${t.msg}" (${t.interval} min)</span>
-            <button onclick="removeCommand(${i})" style="background:red; border:none; color:white; border-radius:5px; cursor:pointer; padding:5px 10px;">X</button>
-        </div>`).join('');
-}
-
-window.removeCommand = function(index) {
-    clearInterval(activeTimers[index].timerId);
-    activeTimers.splice(index, 1);
-    updateCommandList();
-}
-
-window.showTab = function(id) {
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    document.getElementById('btn-' + id).classList.add('active');
-}
-
-window.generateOverlayUrl = function(tw, ki) {
-    const fs = document.getElementById('overlayFS').value || '22';
-    const stay = document.getElementById('overlayTime').value || '15';
-    const alpha = (document.getElementById('overlayAlpha').value || '70') / 100;
-
-    fetchKickID(ki).then(id => {
-        const idToUse = id || '92474944'; 
-        const baseUrl = window.location.href.split('index.html')[0].split('app.html')[0];
-        const url = `${baseUrl}overlay.html?twitch=${tw}&kick=${idToUse}&size=${fs}&stay=${stay}&alpha=${alpha}`;
-        document.getElementById('copy-url-display').innerText = url;
-    });
-}
-
-window.copyOverlayUrl = function() {
-    const url = document.getElementById('copy-url-display').innerText;
-    navigator.clipboard.writeText(url).then(() => alert("Overlay URL Copied!"));
-}
-
-window.initMobileCam = function() {
-    const sID = "jailex_" + Math.random().toString(36).substring(7);
-    const pU = `https://vdo.ninja/?push=${sID}&webcam&autostart&cleanoutput&quality=1&facing=user`;
-    const vU = `https://vdo.ninja/?view=${sID}&autoplay&cleanoutput`;
-    
-    document.getElementById('cam-container').innerHTML = `<iframe allow="camera;microphone;fullscreen;autoplay" src="${pU}" style="width:100%; height:100%; border:none;"></iframe>`;
-    document.getElementById('cam-url-display').innerText = vU;
-    document.getElementById('cam-link-box').style.display = "block";
-    
-    const btn = document.getElementById('init-cam-btn');
-    btn.innerText = "CAMERA ACTIVE";
-    btn.style.background = "var(--kick-green)";
-}
-
-window.copyCamUrl = function() { 
-    navigator.clipboard.writeText(document.getElementById('cam-url-display').innerText).then(() => alert("Camera URL Copied!")); 
-}
-
-let voiceLoadAttempts = 0;
-window.loadVoices = function() {
-    voicesList = window.speechSynthesis.getVoices();
-    const s = document.getElementById('voiceSelect');
-    if (s && voicesList.length > 0) {
-        s.innerHTML = ''; 
-        voicesList.forEach((v, i) => { s.innerHTML += `<option value="${i}">${v.name} (${v.lang})</option>`; }); 
-    }
-}
-
-window.attemptVoiceLoad = function() {
-    loadVoices();
-    if (voicesList.length <= 1 && voiceLoadAttempts < 20) {
-        voiceLoadAttempts++;
-        setTimeout(attemptVoiceLoad, 250); 
-    }
-}
-
-window.onload = () => { 
-    attemptVoiceLoad(); 
-    if(speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = loadVoices; 
-    }
-    loadVercelVars();
-};
-
-window.testAudio = function() { ttsQueue.push("Jailex audio engine check."); }
+        window.onload = () => { 
+            loadVoices();
+            if(speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices; 
+        };
+        
+        function testAudio() { ttsQueue.push("Jailex audio engine check."); }
+    </script>
+</body>
+</html>
