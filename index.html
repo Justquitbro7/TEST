@@ -52,13 +52,6 @@
         #auditLog { background:#000; color:#00ffcc; resize:none; font-family:monospace; font-size:12px; width: 100%; height: 120px; border: 1px solid rgba(255,255,255,0.1); padding:10px; margin-top: 10px; }
         #copy-url-display { background: #000; padding: 15px; border-radius: 10px; border: 1px dashed var(--blue); color: #00ffcc; font-family: monospace; font-size: 10px; word-break: break-all; margin-top: 10px; }
         #cam-url-display { font-size:11px; padding:15px; border-radius:12px; background:rgba(0,0,0,0.8); border: 1px dashed var(--blue); color: var(--blue); margin-bottom: 15px; word-break: break-all; }
-
-        /* NEW INSTRUCTION BOX STYLES */
-        .instruction-box { background: rgba(0,0,0,0.4); border: 1px dashed var(--kick-green); padding: 15px; border-radius: 10px; margin-top: 20px; font-size: 11px; color: #ccc; line-height: 1.6; }
-        .instruction-box h4 { margin: 0 0 10px 0; color: var(--kick-green); font-family: 'Orbitron'; font-size: 13px; letter-spacing: 1px; }
-        .instruction-box ol { margin: 0; padding-left: 20px; }
-        .instruction-box li { margin-bottom: 6px; }
-        .instruction-box strong { color: var(--blue); }
     </style>
 </head>
 <body>
@@ -92,18 +85,6 @@
                 <input type="text" id="twitchInput" placeholder="TWITCH USERNAME">
                 <input type="text" id="kickInput" placeholder="KICK USERNAME">
                 <button class="primary-btn init-btn" onclick="masterInitialize()">ENGAGE ENGINE</button>
-                
-                <div class="instruction-box">
-                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
-                    <ol>
-                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
-                        <li><strong>Add Layer:</strong> Click the green + icon (Add Layer) next to the "Layers" tab on the left side.</li>
-                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
-                        <li><strong>Configure Source:</strong> Select whether you want to share your entire screen, a specific application window, or a browser tab.</li>
-                        <li><strong>Enable Audio:</strong> Tick the "Share Audio" box if you want to capture audio from the shared content.</li>
-                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
-                    </ol>
-                </div>
             </div>
         </div>
 
@@ -116,18 +97,6 @@
                 </div>
                 <div id="chat-preview"></div>
                 <textarea id="auditLog" readonly></textarea>
-
-                <div class="instruction-box">
-                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
-                    <ol>
-                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
-                        <li><strong>Add Layer:</strong> Click the green + icon (Add Layer) next to the "Layers" tab on the left side.</li>
-                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
-                        <li><strong>Configure Source:</strong> Select whether you want to share your entire screen, a specific application window, or a browser tab.</li>
-                        <li><strong>Enable Audio:</strong> Tick the "Share Audio" box if you want to capture audio from the shared content.</li>
-                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
-                    </ol>
-                </div>
             </div>
         </div>
 
@@ -145,18 +114,6 @@
                 <label style="font-size:11px; color:var(--blue); display:block; margin-bottom:5px;">AI VOICE SELECTION (LOCAL SYSTEM)</label>
                 <select id="voiceSelect"><option value="">Loading voices...</option></select>
                 <button class="primary-btn" style="background:var(--blue); color:black; height:45px; padding:0; margin-top:15px;" onclick="testAudio()">TEST AUDIO</button>
-                
-                <div class="instruction-box">
-                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
-                    <ol>
-                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
-                        <li><strong>Add Layer:</strong> Click the green + icon (Add Layer) next to the "Layers" tab on the left side.</li>
-                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
-                        <li><strong>Configure Source:</strong> Select whether you want to share your entire screen, a specific application window, or a browser tab.</li>
-                        <li><strong>Enable Audio:</strong> Tick the "Share Audio" box if you want to capture audio from the shared content.</li>
-                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
-                    </ol>
-                </div>
             </div>
         </div>
 
@@ -201,18 +158,6 @@
                 <input type="number" id="cmdInterval" placeholder="INTERVAL (MINUTES)" min="1">
                 <button class="primary-btn" style="background:var(--kick-green); color:black;" onclick="addVoiceCommand()">START AUTO-COMMAND</button>
                 <div id="activeCommands" style="margin-top:20px;"></div>
-                
-                <div class="instruction-box">
-                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
-                    <ol>
-                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
-                        <li><strong>Add Layer:</strong> Click the green + icon (Add Layer) next to the "Layers" tab on the left side.</li>
-                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
-                        <li><strong>Configure Source:</strong> Select whether you want to share your entire screen, a specific application window, or a browser tab.</li>
-                        <li><strong>Enable Audio:</strong> Tick the "Share Audio" box if you want to capture audio from the shared content.</li>
-                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
-                    </ol>
-                </div>
             </div>
         </div>
 
