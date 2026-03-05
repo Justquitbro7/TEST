@@ -14,7 +14,7 @@
     <script src="https://js.pusher.com/8.4.0-rc2/pusher.min.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@400;700&display=swap">
     <style>
-        :root { --blue: #00d2ff; --dark: #060e1a; --glass: rgba(10, 25, 47, 0.9); --bears-orange: #C83803; --kick-green: #53FC18; }
+        :root { --blue: #00d2ff; --dark: #060e1a; --glass: rgba(10, 25, 47, 0.9); --kick-green: #53FC18; }
         body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
         .sidebar { width: 280px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(0,210,255,0.1); padding: 30px 20px; backdrop-filter: blur(15px); display: flex; flex-direction: column; z-index: 100; }
@@ -52,6 +52,11 @@
         #auditLog { background:#000; color:#00ffcc; resize:none; font-family:monospace; font-size:12px; width: 100%; height: 120px; border: 1px solid rgba(255,255,255,0.1); padding:10px; margin-top: 10px; }
         #copy-url-display { background: #000; padding: 15px; border-radius: 10px; border: 1px dashed var(--blue); color: #00ffcc; font-family: monospace; font-size: 10px; word-break: break-all; margin-top: 10px; }
         #cam-url-display { font-size:11px; padding:15px; border-radius:12px; background:rgba(0,0,0,0.8); border: 1px dashed var(--blue); color: var(--blue); margin-bottom: 15px; word-break: break-all; }
+
+        /* Directions Box Styling */
+        .directions-box { border: 1px solid var(--blue); background: rgba(0, 210, 255, 0.05); padding: 20px; border-radius: 12px; margin-top: 20px; }
+        .directions-box h4 { margin: 0 0 10px 0; color: var(--blue); font-family: 'Orbitron'; font-size: 14px; }
+        .directions-box p, .directions-box li { font-size: 12px; line-height: 1.5; color: rgba(255,255,255,0.8); }
     </style>
 </head>
 <body>
@@ -74,110 +79,94 @@
         
         <div class="sidebar-footer">
             <p>&copy; 2026 JAILEX STUDIOS<br>All rights reserved.</p>
-            <p>Contact Us: <br><a href="mailto:jailexstudios@gmail.com">jailexstudios@gmail.com</a></p>
         </div>
     </div>
 
     <div class="main">
         <div id="sync" class="panel active">
             <div class="card">
-                <h2 style="font-family:'Orbitron'; color:var(--blue); text-align:center; margin-top:0;">QUICKSYNC ENGINE</h2>
+                <h2 style="font-family:'Orbitron'; color:var(--blue); text-align:center;">QUICKSYNC ENGINE</h2>
                 <input type="text" id="twitchInput" placeholder="TWITCH USERNAME">
                 <input type="text" id="kickInput" placeholder="KICK USERNAME">
                 <button class="primary-btn init-btn" onclick="masterInitialize()">ENGAGE ENGINE</button>
-            </div>
-            
-            <div class="card" style="border: 1px solid var(--bears-orange); background: rgba(200, 56, 3, 0.05); padding: 25px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 13px; color: var(--bears-orange); text-transform: uppercase; font-family: 'Orbitron';">IMPORTANT: ENABLE AUDIO & TTS</h3>
-                <p style="font-size: 12px; opacity: 0.9; margin-bottom: 12px; line-height: 1.4;">To use screen sharing in Lightstream Studio or OBS, follow these steps to add a visual or audio layer from your computer:</p>
-                <ul style="font-size: 11px; opacity: 0.8; line-height: 1.6; padding-left: 20px; margin: 0;">
-                    <li style="margin-bottom: 6px;"><strong style="color:var(--blue);">Add the Layer:</strong> Click the green "Add Layer" button (the "+" icon) in your project's layer panel and select "Screenshare".</li>
-                    <li style="margin-bottom: 6px;"><strong style="color:var(--blue);">Select Content:</strong> A browser window will pop up. Choose whether to share your Entire Screen, a specific Window, or a single Browser Tab.</li>
-                    <li style="margin-bottom: 6px;"><strong style="color:var(--kick-green);">Enable Audio:</strong> If you want to include your computer's sound (e.g., for music or Discord), check the <u>"Share Audio"</u> box at the bottom of the sharing window before clicking "Share".</li>
-                    <li><strong style="color:var(--blue);">Customize:</strong> Once added, you can resize or reposition the screen share on your canvas. If you only need the audio, you can hide or delete the visual layer while keeping the audio source active in the Audio Mixer at the bottom left.</li>
-                </ul>
+                
+                <div class="directions-box">
+                    <h4>IMPORTANT! To enable audio functions and TTS:</h4>
+                    <p>To use screen sharing in Lightstream Studio or OBS follow these steps to add a visual or audio layer from your computer:</p>
+                    <ul>
+                        <li><strong>Add the Layer:</strong> Click the green "Add Layer" button (+) and select "Screenshare".</li>
+                        <li><strong>Select Content:</strong> Choose Entire Screen, Window, or Browser Tab.</li>
+                        <li><strong>Enable Audio:</strong> Check the "Share Audio" box at the bottom before clicking "Share".</li>
+                        <li><strong>Customize:</strong> If you only need audio, hide/delete the visual layer while keeping the audio active in the mixer.</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
         <div id="dash" class="panel">
             <div class="card">
-                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">SYSTEM DASHBOARD</h2>
+                <h2 style="font-family:'Orbitron'; color:var(--blue);">SYSTEM DASHBOARD</h2>
                 <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                    <div id="tw-light" style="background:rgba(145,70,255,0.1); border:1px solid #9146FF; padding:10px; border-radius:10px; width:48%; text-align:center; color:#9146FF; font-weight:bold;">TWITCH: OFF</div>
-                    <div id="ki-light" style="background:rgba(83,252,24,0.1); border:1px solid #53FC18; padding:10px; border-radius:10px; width:48%; text-align:center; color:#53FC18; font-weight:bold;">KICK: OFF</div>
+                    <div id="tw-light" style="border:1px solid #9146FF; padding:10px; border-radius:10px; width:48%; text-align:center;">TWITCH: OFF</div>
+                    <div id="ki-light" style="border:1px solid #53FC18; padding:10px; border-radius:10px; width:48%; text-align:center;">KICK: OFF</div>
                 </div>
                 <div id="chat-preview"></div>
                 <textarea id="auditLog" readonly></textarea>
+
+                <div class="directions-box">
+                    <h4>IMPORTANT! To enable audio functions and TTS:</h4>
+                    <p>Follow the screenshare steps in Lightstream/OBS to ensure audio is captured correctly.</p>
+                </div>
             </div>
         </div>
 
         <div id="audio" class="panel">
             <div class="card">
-                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">AUDIO PARAMETERS</h2>
+                <h2 style="font-family:'Orbitron'; color:var(--blue);">AUDIO ENGINE</h2>
                 <div class="toggle-row">
-                    <label style="font-size:12px; font-weight:bold;">READ USERNAME</label>
-                    <input type="checkbox" id="readUserToggle" checked style="width:auto; margin:0;">
+                    <label>READ USERNAME</label>
+                    <input type="checkbox" id="readUserToggle" checked style="width:auto;">
                 </div>
                 <div class="toggle-row">
-                    <label style="font-size:12px; font-weight:bold;">ENABLE TTS</label>
-                    <input type="checkbox" id="ttsEnabled" checked style="width:auto; margin:0;">
+                    <label>ENABLE TTS</label>
+                    <input type="checkbox" id="ttsEnabled" checked style="width:auto;">
                 </div>
-                <label style="font-size:11px; color:var(--blue); display:block; margin-bottom:5px;">AI VOICE SELECTION (LOCAL SYSTEM)</label>
                 <select id="voiceSelect"><option value="">Loading voices...</option></select>
-                <button class="primary-btn" style="background:var(--blue); color:black; height:45px; padding:0; margin-top:15px;" onclick="testAudio()">TEST AUDIO</button>
-            </div>
-        </div>
+                <button class="primary-btn" style="background:var(--blue); color:black;" onclick="testAudio()">TEST AUDIO</button>
 
-        <div id="alerts" class="panel">
-            <div class="card">
-                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">STREAM ALERTS</h2>
-                <p style="font-size: 11px; opacity: 0.8; margin-bottom: 20px;">Configure on-screen and audio alerts for your stream.</p>
-                
-                <div class="alert-row">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3>NEW FOLLOWER</h3>
-                        <input type="checkbox" id="alertFollow" checked style="width:auto; margin:0;">
-                    </div>
-                    <input type="text" id="msgFollow" value="has joined the squad!" placeholder="Alert message...">
+                <div class="directions-box">
+                    <h4>IMPORTANT! Audio Setup:</h4>
+                    <p>Enable "Share Audio" during the Screenshare setup in your streaming software to hear TTS on stream.</p>
                 </div>
-
-                <div class="alert-row">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3>NEW SUBSCRIBER</h3>
-                        <input type="checkbox" id="alertSub" checked style="width:auto; margin:0;">
-                    </div>
-                    <input type="text" id="msgSub" value="just subscribed! Welcome to the big leagues!" placeholder="Alert message...">
-                </div>
-
-                <div class="alert-row">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3>DONATION / TIPS</h3>
-                        <input type="checkbox" id="alertTip" checked style="width:auto; margin:0;">
-                    </div>
-                    <input type="text" id="msgTip" value="just dropped a tip! Thank you!" placeholder="Alert message...">
-                </div>
-                
-                <button class="primary-btn" style="background:var(--kick-green); color:black; margin-top:10px;">SAVE ALERT SETTINGS</button>
             </div>
         </div>
 
         <div id="voice" class="panel">
             <div class="card">
-                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">VOICE COMMANDS</h2>
-                <input type="text" id="cmdUser" placeholder="VIRTUAL USERNAME (e.g. JAILEX)">
-                <input type="text" id="cmdMessage" placeholder="MESSAGE TO REPEAT">
-                <input type="number" id="cmdInterval" placeholder="INTERVAL (MINUTES)" min="1">
+                <h2 style="font-family:'Orbitron'; color:var(--blue);">VOICE COMMANDS</h2>
+                <input type="text" id="cmdUser" placeholder="VIRTUAL USERNAME">
+                <input type="text" id="cmdMessage" placeholder="MESSAGE">
+                <input type="number" id="cmdInterval" placeholder="INTERVAL (MINUTES)">
                 <button class="primary-btn" style="background:var(--kick-green); color:black;" onclick="addVoiceCommand()">START AUTO-COMMAND</button>
-                <div id="activeCommands" style="margin-top:20px;"></div>
+                <div id="activeCommands"></div>
+
+                <div class="directions-box">
+                    <h4>IMPORTANT! To hear commands:</h4>
+                    <p>Ensure your computer's sound is shared as a layer in Lightstream or OBS.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="alerts" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue);">STREAM ALERTS</h2>
+                <p>Alert logic goes here.</p>
             </div>
         </div>
 
         <div id="overlay" class="panel">
             <div class="card">
-                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">OVERLAY GENERATOR</h2>
-                <div class="toggle-row"><label>FONT SIZE</label><input type="number" id="overlayFS" value="22" style="width:80px; margin:0;"></div>
-                <div class="toggle-row"><label>STAY TIME (SEC)</label><input type="number" id="overlayTime" value="15" style="width:80px; margin:0;"></div>
-                <div class="toggle-row"><label>OPACITY</label><input type="range" id="overlayAlpha" value="70" style="width:150px; margin:0;"></div>
+                <h2 style="font-family:'Orbitron'; color:var(--blue);">CHAT OVERLAY</h2>
                 <div id="copy-url-display">Generate URL by Engaging Engine...</div>
                 <button class="primary-btn" style="background:var(--blue); color:black; margin-top:15px;" onclick="copyOverlayUrl()">COPY OVERLAY URL</button>
             </div>
@@ -185,25 +174,15 @@
 
         <div id="camera" class="panel">
             <div class="card">
-                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0; margin-bottom: 25px; text-align: center;">WEB CAMERA</h2>
-                
-                <div id="cam-container" style="width: 100%; height: 350px; background: #000; border-radius: 14px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--blue); overflow: hidden;">
-                    <span style="color: #444; font-family: 'Orbitron'; font-size: 12px; letter-spacing: 2px;">CAMERA OFFLINE</span>
-                </div>
-                
-                <button id="init-cam-btn" class="primary-btn" style="background: var(--blue); color: black;" onclick="initMobileCam()">INITIALIZE CAMERA</button>
-                
-                <div id="cam-link-box" style="display:none;">
-                    <p style="font-size: 11px; opacity: 0.8; margin-bottom: 10px;">Paste this URL into OBS as a Browser Source:</p>
-                    <div id="cam-url-display"></div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="primary-btn" style="flex: 1; padding: 15px; font-size: 12px;" onclick="copyCamUrl()">COPY LINK</button>
-                    </div>
-                </div>
+                <h2 style="font-family:'Orbitron'; color:var(--blue);">WEB CAMERA</h2>
+                <div id="cam-container" style="width:100%; height:300px; background:#000; border-radius:12px; display:flex; align-items:center; justify-content:center;">CAMERA OFFLINE</div>
+                <button id="init-cam-btn" class="primary-btn" onclick="initMobileCam()" style="margin-top:15px;">INITIALIZE CAMERA</button>
             </div>
         </div>
     </div>
 
-    <script src="engine.js"></script>
+    <script>
+        let twitchWS=null;let kickWS=null;let ttsQueue=[];let isSpeaking=false;let voicesList=[];let messageHistory=new Set();let activeTimers=[];const KICK_BOTS=["botrix","kickbot","streamelements","nightbot","moobot"];function log(e){const t=document.getElementById("auditLog");t&&(t.value+=`> ${e}\n`,t.scrollTop=t.scrollHeight)}async function fetchKickID(e){const t=`https://kick.com/api/v2/channels/${e}`;try{const n=await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(t)}`),o=await n.json();if(o.chatroom?.id)return o.chatroom.id}catch(e){}try{const r=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(t)}`),a=await r.json(),i=JSON.parse(a.contents);if(i.chatroom?.id)return i.chatroom.id}catch(e){}return null}async function connectKick(e){if(!e)return;kickWS&&(kickWS.close(),log("Resetting Kick Bridge..."));const t=await fetchKickID(e);if(!t)return void log("Kick Error: ID not found.");log(`Kick: ID ${t} Secured.`),kickWS=new WebSocket("wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false"),kickWS.onopen=()=>{log("Kick: Socket Opened.")},kickWS.onmessage=e=>{const n=JSON.parse(e.data);"pusher:connection_established"===n.event&&kickWS.send(JSON.stringify({event:"pusher:subscribe",data:{channel:`chatrooms.${t}.v2`}})),"pusher_internal:subscription_succeeded"===n.event&&(log("Kick: Bridge Armed."),document.getElementById("ki-light").innerText="KICK: ONLINE",document.getElementById("ki-light").style.background="rgba(83,252,24,0.3)"),"App\\Events\\ChatMessageEvent"===n.event&&(e="string"==typeof n.data?JSON.parse(n.data):n.data,t=e.sender?.username||"Unknown",n=e.content||"",KICK_BOTS.includes(t.toLowerCase())||handleMessage(t,n,"KICK"))}}function connectTwitch(e){e&&(twitchWS&&(log("Twitch: Terminating old bridge..."),twitchWS.onmessage=null,twitchWS.close(),twitchWS=null),twitchWS=new WebSocket("wss://irc-ws.chat.twitch.tv:443"),twitchWS.onopen=()=>{twitchWS.send("PASS oauth:read_only"),twitchWS.send("NICK justinfan"+Math.floor(99999*Math.random())),twitchWS.send(`JOIN #${e.toLowerCase()}`),log("Twitch: Bridge Armed."),document.getElementById("tw-light").innerText="TWITCH: ONLINE",document.getElementById("tw-light").style.background="rgba(145,70,255,0.3)"},twitchWS.onmessage=e=>{e.data.split("\r\n").forEach(e=>{if(e.includes("PING")&&twitchWS.send("PONG :tmi.twitch.tv"),e.includes("PRIVMSG")){const t=e.split("!")[0].substring(1),n=e.split("PRIVMSG")[1].split(":")[1].trim(),o=`${t}-${n}`.substring(0,50);if(!messageHistory.has(o)){if(messageHistory.add(o),handleMessage(t,n,"TWITCH"),messageHistory.size>50){const r=messageHistory.values().next().value;messageHistory.delete(r)}}}})}}async function masterInitialize(){log("JAILEX: Engaging Protocols...");const e=document.getElementById("twitchInput").value.trim(),t=document.getElementById("kickInput").value.trim();showTab("dash"),e&&connectTwitch(e),t&&await connectKick(t),ttsQueue.push("Engine engaged."),window.speechSynthesis.speak(new SpeechSynthesisUtterance(""))}function handleMessage(e,t,n){const o=document.getElementById("chat-preview"),r="TWITCH"===n?"#9146FF":"#53FC18";o.innerHTML+=`<div><strong style="color:${r}">[${n}] ${e}:</strong> ${t}</div>`,o.scrollTop=o.scrollHeight,document.getElementById("ttsEnabled").checked&&!t.startsWith("!")&&(n=document.getElementById("readUserToggle").checked,t=n?`${e} says ${t}`:t,ttsQueue.push(t))}function addVoiceCommand(){const e=document.getElementById("cmdUser").value.trim(),t=document.getElementById("cmdMessage").value.trim(),n=6e4*parseInt(document.getElementById("cmdInterval").value);if(!t||isNaN(n))return void alert("Please enter a message and time.");const o=setInterval(()=>{const n=e?`${e} says ${t}`:t;ttsQueue.push(n),log(`Auto-Command Fired: ${n}`)},n);activeTimers.push({timerId:o,msg:t,interval:n/6e4}),updateCommandList()}function updateCommandList(){const e=document.getElementById("activeCommands");e.innerHTML=activeTimers.map((e,t)=>`<div style="background:rgba(255,255,255,.05);padding:10px;border-radius:10px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;"><span>"${e.msg}" (Every ${e.interval} min)</span><button onclick="removeCommand(${t})" style="background:red;border:none;color:white;border-radius:5px;cursor:pointer;padding:5px 10px;">X</button></div>`).join("")}function removeCommand(e){clearInterval(activeTimers[e].timerId),activeTimers.splice(e,1),updateCommandList()}function showTab(e){document.querySelectorAll(".panel").forEach(t=>t.classList.remove("active")),document.querySelectorAll(".tab-btn").forEach(t=>t.classList.remove("active")),document.getElementById(e).classList.add("active"),document.getElementById("btn-"+e).classList.add("active")}function copyOverlayUrl(){const e=document.getElementById("copy-url-display").innerText;navigator.clipboard.writeText(e).then(()=>alert("Overlay URL Copied!"))}function initMobileCam(){const e="jailex_"+Math.random().toString(36).substring(7),t=`https://vdo.ninja/?push=${e}&webcam&autostart&cleanoutput&quality=1&facing=user`,n=`https://vdo.ninja/?view=${e}&autoplay&cleanoutput`;document.getElementById("cam-container").innerHTML=`<iframe allow="camera;microphone;fullscreen;autoplay" src="${t}" style="width:100%;height:100%;border:none;"></iframe>`,document.getElementById("init-cam-btn").innerText="CAMERA ACTIVE",document.getElementById("init-cam-btn").style.background="var(--kick-green)"}function testAudio(){ttsQueue.push("Jailex audio engine check.")}setInterval(()=>{if(!(isSpeaking||0===ttsQueue.length)){isSpeaking=!0;const e=ttsQueue.shift(),t=new SpeechSynthesisUtterance(e),n=document.getElementById("voiceSelect").value;voicesList[n]&&(t.voice=voicesList[n]),t.onend=()=>isSpeaking=!1,t.onerror=()=>isSpeaking=!1,window.speechSynthesis.speak(t)}},100),window.onload=()=>{!function e(){voicesList=window.speechSynthesis.getVoices();const t=document.getElementById("voiceSelect");t&&voicesList.length>0&&(t.innerHTML="",voicesList.forEach((e,n)=>{t.innerHTML+=`<option value="${n}">${e.name} (${e.lang})</option>`})),voicesList.length<=1&&setTimeout(e,250)}()};
+    </script>
 </body>
 </html>
