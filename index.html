@@ -52,10 +52,13 @@
         #auditLog { background:#000; color:#00ffcc; resize:none; font-family:monospace; font-size:12px; width: 100%; height: 120px; border: 1px solid rgba(255,255,255,0.1); padding:10px; margin-top: 10px; }
         #copy-url-display { background: #000; padding: 15px; border-radius: 10px; border: 1px dashed var(--blue); color: #00ffcc; font-family: monospace; font-size: 10px; word-break: break-all; margin-top: 10px; }
         #cam-url-display { font-size:11px; padding:15px; border-radius:12px; background:rgba(0,0,0,0.8); border: 1px dashed var(--blue); color: var(--blue); margin-bottom: 15px; word-break: break-all; }
-        
-        /* SCREEN SHARE DIRECTIONS STYLE */
-        .share-directions { margin-top: 25px; padding-top: 15px; border-top: 1px dashed rgba(0,210,255,0.3); font-size: 11px; color: #ccc; line-height: 1.5; }
-        .share-directions strong.title { color: var(--blue); font-family: 'Orbitron'; font-size: 12px; display: block; margin-bottom: 5px; letter-spacing: 1px; }
+
+        /* NEW INSTRUCTION BOX STYLES */
+        .instruction-box { background: rgba(0,0,0,0.4); border: 1px dashed var(--kick-green); padding: 15px; border-radius: 10px; margin-top: 20px; font-size: 11px; color: #ccc; line-height: 1.6; }
+        .instruction-box h4 { margin: 0 0 10px 0; color: var(--kick-green); font-family: 'Orbitron'; font-size: 13px; letter-spacing: 1px; }
+        .instruction-box ol { margin: 0; padding-left: 20px; }
+        .instruction-box li { margin-bottom: 6px; }
+        .instruction-box strong { color: var(--blue); }
     </style>
 </head>
 <body>
@@ -90,9 +93,16 @@
                 <input type="text" id="kickInput" placeholder="KICK USERNAME">
                 <button class="primary-btn init-btn" onclick="masterInitialize()">ENGAGE ENGINE</button>
                 
-                <div class="share-directions">
-                    <strong class="title">HOW TO HEAR TTS ON STREAM:</strong>
-                    To get JAILEX audio to your viewers, screen share this browser tab into <strong>Lightstream</strong> (or OBS). Make sure you select the option to <strong>Share Tab Audio</strong>! You must also click "Test Audio" in the Audio Engine tab to unmute your browser.
+                <div class="instruction-box">
+                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
+                    <ol>
+                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
+                        <li><strong>Add Layer:</strong> Click the green + icon (Add Layer) next to the "Layers" tab on the left side.</li>
+                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
+                        <li><strong>Configure Source:</strong> Select whether you want to share your entire screen, a specific application window, or a browser tab.</li>
+                        <li><strong>Enable Audio:</strong> Tick the "Share Audio" box if you want to capture audio from the shared content.</li>
+                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
+                    </ol>
                 </div>
             </div>
         </div>
@@ -106,10 +116,17 @@
                 </div>
                 <div id="chat-preview"></div>
                 <textarea id="auditLog" readonly></textarea>
-                
-                <div class="share-directions">
-                    <strong class="title">HOW TO HEAR TTS ON STREAM:</strong>
-                    To get JAILEX audio to your viewers, screen share this browser tab into <strong>Lightstream</strong> (or OBS). Make sure you select the option to <strong>Share Tab Audio</strong>! You must also click "Test Audio" in the Audio Engine tab to unmute your browser.
+
+                <div class="instruction-box">
+                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
+                    <ol>
+                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
+                        <li><strong>Add Layer:</strong> Click the green + icon (Add Layer) next to the "Layers" tab on the left side.</li>
+                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
+                        <li><strong>Configure Source:</strong> Select whether you want to share your entire screen, a specific application window, or a browser tab.</li>
+                        <li><strong>Enable Audio:</strong> Tick the "Share Audio" box if you want to capture audio from the shared content.</li>
+                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
+                    </ol>
                 </div>
             </div>
         </div>
@@ -129,9 +146,16 @@
                 <select id="voiceSelect"><option value="">Loading voices...</option></select>
                 <button class="primary-btn" style="background:var(--blue); color:black; height:45px; padding:0; margin-top:15px;" onclick="testAudio()">TEST AUDIO</button>
                 
-                <div class="share-directions">
-                    <strong class="title">HOW TO HEAR TTS ON STREAM:</strong>
-                    To get JAILEX audio to your viewers, screen share this browser tab into <strong>Lightstream</strong> (or OBS). Make sure you select the option to <strong>Share Tab Audio</strong>! You must also click "Test Audio" above to unmute your browser.
+                <div class="instruction-box">
+                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
+                    <ol>
+                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
+                        <li><strong>Add Layer:</strong> Click the green + icon (Add Layer) next to the "Layers" tab on the left side.</li>
+                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
+                        <li><strong>Configure Source:</strong> Select whether you want to share your entire screen, a specific application window, or a browser tab.</li>
+                        <li><strong>Enable Audio:</strong> Tick the "Share Audio" box if you want to capture audio from the shared content.</li>
+                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
+                    </ol>
                 </div>
             </div>
         </div>
@@ -178,9 +202,16 @@
                 <button class="primary-btn" style="background:var(--kick-green); color:black;" onclick="addVoiceCommand()">START AUTO-COMMAND</button>
                 <div id="activeCommands" style="margin-top:20px;"></div>
                 
-                <div class="share-directions">
-                    <strong class="title">HOW TO HEAR TTS ON STREAM:</strong>
-                    To get JAILEX audio to your viewers, screen share this browser tab into <strong>Lightstream</strong> (or OBS). Make sure you select the option to <strong>Share Tab Audio</strong>! You must also click "Test Audio" in the Audio Engine tab to unmute your browser.
+                <div class="instruction-box">
+                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
+                    <ol>
+                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
+                        <li><strong>Add Layer:</strong> Click the green + icon (Add Layer) next to the "Layers" tab on the left side.</li>
+                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
+                        <li><strong>Configure Source:</strong> Select whether you want to share your entire screen, a specific application window, or a browser tab.</li>
+                        <li><strong>Enable Audio:</strong> Tick the "Share Audio" box if you want to capture audio from the shared content.</li>
+                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
+                    </ol>
                 </div>
             </div>
         </div>
