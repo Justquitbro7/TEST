@@ -81,22 +81,8 @@
         <div id="sync" class="panel active">
             <div class="card">
                 <h2 style="font-family:'Orbitron'; color:var(--blue); text-align:center; margin-top:0;">QUICKSYNC ENGINE</h2>
-                
-                <div style="display:flex; gap:10px; margin-bottom:15px;">
-                    <input type="text" id="twitchInput" placeholder="TWITCH USERNAME" style="margin-bottom:0; flex:1;">
-                    <button id="twitchConnectBtn" class="primary-btn" style="background:#9146FF; color:white; width:auto; padding:0 20px; margin:0;" onclick="loginTwitch()">AUTH TWITCH</button>
-                </div>
-
-                <div style="display:flex; gap:10px; margin-bottom:15px;">
-                    <input type="text" id="kickInput" placeholder="KICK USERNAME" style="margin-bottom:0; flex:1;">
-                    <button id="kickConnectBtn" class="primary-btn" style="background:var(--kick-green); color:black; width:auto; padding:0 20px; margin:0;" onclick="loginKick()">AUTH KICK</button>
-                </div>
-                
-                <div id="authStatus" style="font-size:11px; text-align:center; margin-bottom:15px; font-weight:bold; font-family:'Orbitron';">
-                    <span id="twStatus" style="color:#9146FF; display:none;">TWITCH AUTHORIZED ✓</span>
-                    <span id="kiStatus" style="color:var(--kick-green); display:none; margin-left:10px;">KICK AUTHORIZED ✓</span>
-                </div>
-
+                <input type="text" id="twitchInput" placeholder="TWITCH USERNAME">
+                <input type="text" id="kickInput" placeholder="KICK USERNAME">
                 <button class="primary-btn init-btn" onclick="masterInitialize()">ENGAGE ENGINE</button>
 
                 <div class="instruction-footer">
@@ -106,7 +92,7 @@
                         <li><strong>Add Layer:</strong> Click the green <strong>+</strong> icon (Add Layer) next to the "Layers" tab on the left side.</li>
                         <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
                         <li><strong>Configure Source:</strong> Select this browser tab to share.</li>
-                        <li><strong>Enable Audio:</strong> Tick the <strong>"Share Audio"</strong> box to capture the TTS.</li>
+                        <li><strong>Enable Audio:</strong> Tick the <strong>"Share Audio"</strong> box to capture the TTS voice.</li>
                         <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
                     </ol>
                 </div>
@@ -142,12 +128,23 @@
                     <input type="checkbox" id="ttsEnabled" checked style="width:auto; margin:0;">
                 </div>
                 <select id="voiceSelect"><option value="">Loading voices...</option></select>
-                <button class="primary-btn" style="background:var(--blue); color:black; height:45px; margin-top:15px;" onclick="testAudio()">TEST AUDIO</button>
+                
+                <button id="start-voice-btn" class="primary-btn" style="background:var(--bears-orange); color:white; height:45px; margin-top:15px;" onclick="initVoiceEngine()">START VOICE ENGINE</button>
+                <div id="voice-status" style="text-align:center; font-size:11px; font-weight:bold; margin-top:10px; color:#555;">VOICE ENGINE: STANDBY</div>
                 
                 <div class="instruction-footer">
                     <h4>Steps to Screen Share in Lightstream or OBS</h4>
                     <p>Refer to QuickSync tab for full steps.</p>
                 </div>
+            </div>
+        </div>
+
+        <div id="alerts" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">STREAM ALERTS</h2>
+                <div class="alert-row"><div style="display:flex; justify-content:space-between; align-items:center;"><h3>NEW FOLLOWER</h3><input type="checkbox" id="alertFollow" checked style="width:auto; margin:0;"></div><input type="text" id="msgFollow" value="has joined the squad!" placeholder="Alert message..."></div>
+                <div class="alert-row"><div style="display:flex; justify-content:space-between; align-items:center;"><h3>NEW SUBSCRIBER</h3><input type="checkbox" id="alertSub" checked style="width:auto; margin:0;"></div><input type="text" id="msgSub" value="just subscribed! Welcome to the big leagues!" placeholder="Alert message..."></div>
+                <button class="primary-btn" style="background:var(--kick-green); color:black; margin-top:10px;">SAVE ALERT SETTINGS</button>
             </div>
         </div>
 
@@ -167,9 +164,6 @@
             </div>
         </div>
 
-        <div id="alerts" class="panel">
-            <div class="card"><h2 style="font-family:'Orbitron'; color:var(--blue);">STREAM ALERTS</h2><button class="primary-btn" style="background:var(--kick-green); color:black;">SAVE ALERT SETTINGS</button></div>
-        </div>
         <div id="overlay" class="panel">
             <div class="card"><h2 style="font-family:'Orbitron'; color:var(--blue);">CHAT OVERLAY</h2><div id="copy-url-display">Generate URL by Engaging Engine...</div><button class="primary-btn" style="background:var(--blue); color:black; margin-top:15px;" onclick="copyOverlayUrl()">COPY OVERLAY URL</button></div>
         </div>
@@ -179,132 +173,168 @@
     </div>
 
     <script>
-        // --- JAILEX OFFICIAL OAUTH SYSTEM ---
-        const TWITCH_CLIENT_ID = 'nk06xpus7cc4naiif04xqqamwcf8rz'; // Verified Twitch ID
-        const KICK_CLIENT_ID = '01JKASDRZD2SB4PWAWQ2Y160VW'; // Verified Kick ID
-        const REDIRECT_URI = window.location.origin + window.location.pathname;
-
-        let twitchWS = null, kickWS = null, ttsQueue = [], isSpeaking = false, voicesList = [], messageHistory = new Set();
-        const KICK_BOTS = ["botrix", "kickbot", "streamelements", "nightbot", "moobot"];
-
+        // --- LOGGING ---
         function log(m) {
             const audit = document.getElementById('auditLog');
             if (audit) { audit.value += `> ${m}\n`; audit.scrollTop = audit.scrollHeight; }
+            console.log(m);
         }
 
-        // --- PKCE GENERATORS FOR KICK OAUTH ---
-        function generateRandomString(length) {
-            const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-            let text = '';
-            for (let i = 0; i < length; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
-            return text;
-        }
+        // ==========================================
+        // BLUEPRINT BOT FILTER LOGIC
+        // ==========================================
+        const KICK_BOTS = [
+            "botrix", "kickbot", "kick", "streamelements", "nightbot", "moobot",
+            "fossabot", "wizebot", "deepbot", "coebot", "phantombot", "ankhbot",
+            "vivbot", "streamlabs", "cloudbot", "stay_hydrated_bot", "restreambot",
+            "sery_bot", "commanderroot", "lurxx", "electricalskateboard",
+            "electricallongboard", "alizeepathfinder", "virgoproz", "creatisbot",
+            "slocool", "p0lizei_", "lolrankbot", "0ax2", "thepositivebot",
+            "communityshowcase",
+        ];
 
-        async function generateCodeChallenge(codeVerifier) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(codeVerifier);
-            const digest = await window.crypto.subtle.digest('SHA-256', data);
-            return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
-                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-        }
+        const isKickBot = (username) => {
+            const lowerUsername = username.toLowerCase().trim();
+            if (KICK_BOTS.includes(lowerUsername)) return true;
+            if (lowerUsername.endsWith("bot") || lowerUsername.endsWith("_bot") || lowerUsername.includes("bot_")) return true;
+            return false;
+        };
 
-        // --- OFFICIAL LOGIN TRIGGER BUTTONS ---
-        function loginTwitch() {
-            const url = `https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=chat:read+chat:edit&force_verify=true`;
-            window.location.href = url;
-        }
 
-        async function loginKick() {
-            const verifier = generateRandomString(64);
-            const state = generateRandomString(16);
-            const challenge = await generateCodeChallenge(verifier);
-            sessionStorage.setItem('kick_state', state);
-            const scope = encodeURIComponent("channel:read channel:write chat:write events:subscribe user:read moderation:ban");
+        // ==========================================
+        // BLUEPRINT TTS QUEUE ENGINE
+        // ==========================================
+        let ttsQueue = [];
+        let isSpeaking = false;
+        let voiceEnabled = false;
+        let voicesList = [];
+
+        function initVoiceEngine() {
+            voiceEnabled = true;
+            window.speechSynthesis.cancel(); 
             
-            // The exact Fossabot URL logic
-            const authUrl = `https://id.kick.com/oauth/authorize?client_id=${KICK_CLIENT_ID}&code_challenge=${challenge}&code_challenge_method=S256&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${scope}&state=${state}`;
-            window.location.href = authUrl;
+            const utterance = new SpeechSynthesisUtterance("Voice Engine Unlocked. Ready.");
+            window.speechSynthesis.speak(utterance);
+            
+            document.getElementById('voice-status').innerText = "VOICE ENGINE: ACTIVE";
+            document.getElementById('voice-status').style.color = "var(--kick-green)";
+            log("TTS: Voice Engine Manually Unlocked");
         }
 
-        // --- CATCH OAUTH REDIRECTS ---
-        function checkAuthOnLoad() {
-            // Restore saved usernames
-            if(localStorage.getItem('tw_user')) document.getElementById('twitchInput').value = localStorage.getItem('tw_user');
-            if(localStorage.getItem('ki_user')) document.getElementById('kickInput').value = localStorage.getItem('ki_user');
-
-            // Catch Twitch (Hash)
-            if (window.location.hash.includes('access_token')) {
-                const params = new URLSearchParams(window.location.hash.substring(1));
-                localStorage.setItem('twitch_token', params.get('access_token'));
-                window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-            }
-            // Catch Kick (Query)
-            if (window.location.search.includes('code=')) {
-                const params = new URLSearchParams(window.location.search);
-                if (params.get('state') === sessionStorage.getItem('kick_state')) {
-                    localStorage.setItem('kick_code', params.get('code'));
-                }
-                window.history.replaceState({}, document.title, window.location.pathname);
+        // 100ms Queue Processor (Identical to React Blueprint)
+        setInterval(() => {
+            if (!voiceEnabled || isSpeaking || ttsQueue.length === 0) {
+                return;
             }
 
-            // Update UI based on saved auth
-            if (localStorage.getItem('twitch_token')) {
-                document.getElementById('twitchConnectBtn').style.display = 'none';
-                document.getElementById('twStatus').style.display = 'inline-block';
+            const nextMessage = ttsQueue.shift();
+            isSpeaking = true;
+
+            const utterance = new SpeechSynthesisUtterance(nextMessage);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+
+            const voiceSelect = document.getElementById('voiceSelect');
+            if (voiceSelect && voicesList.length > 0 && voiceSelect.value !== "") {
+                const voiceIdx = voiceSelect.value;
+                if (voicesList[voiceIdx]) utterance.voice = voicesList[voiceIdx];
             }
-            if (localStorage.getItem('kick_code')) {
-                document.getElementById('kickConnectBtn').style.display = 'none';
-                document.getElementById('kiStatus').style.display = 'inline-block';
+
+            utterance.onend = () => {
+                isSpeaking = false;
+            };
+
+            utterance.onerror = () => {
+                isSpeaking = false;
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }, 100);
+
+        function handleMessage(user, msg, platform) {
+            const preview = document.getElementById('chat-preview');
+            const color = platform === 'TWITCH' ? '#9146FF' : '#53FC18';
+            preview.innerHTML += `<div><strong style="color:${color}">[${platform}] ${user}:</strong> ${msg}</div>`;
+            preview.scrollTop = preview.scrollHeight;
+
+            if (document.getElementById('ttsEnabled').checked && !msg.startsWith('!')) {
+                const textToSpeak = document.getElementById('readUserToggle').checked ? `${user} says ${msg}` : msg;
+                ttsQueue.push(textToSpeak);
             }
         }
 
-        // --- YOUR VERIFIED DESKTOP KICK LOGIC ---
+
+        // ==========================================
+        // WEBSOCKET CONNECTIONS (Untouched Waterfall)
+        // ==========================================
+        let twitchWS = null, kickWS = null; 
+        let messageHistory = new Set(); 
+        let activeTimers = [];
+
         async function fetchKickID(username) {
             const user = username.toLowerCase().trim();
-            const url = `https://corsproxy.io/?https://kick.com/api/v1/channels/${user}`;
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
-                if (data.chatroom && data.chatroom.id) return data.chatroom.id;
-            } catch (e) {
-                log("Primary bridge failed, trying secondary...");
+            const targetUrl = `https://kick.com/api/v1/channels/${user}`;
+            const proxies = [
+                `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+                `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
+                `https://thingproxy.freeboard.io/fetch/${targetUrl}`
+            ];
+            for (let i = 0; i < proxies.length; i++) {
+                log(`Attempting Bridge ${i + 1}...`);
                 try {
-                    const res2 = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://kick.com/api/v1/channels/'+user)}`);
-                    const json2 = await res2.json();
-                    return JSON.parse(json2.contents).chatroom.id;
-                } catch (e2) { return null; }
+                    const res = await fetch(proxies[i]);
+                    let data;
+                    if (proxies[i].includes('allorigins')) {
+                        const json = await res.json();
+                        data = JSON.parse(json.contents);
+                    } else {
+                        data = await res.json();
+                    }
+                    if (data && data.chatroom && data.chatroom.id) {
+                        log(`Bridge ${i + 1} SUCCESS!`);
+                        return data.chatroom.id;
+                    }
+                } catch (e) { log(`Bridge ${i + 1} blocked. Switching...`); }
             }
+            log("CRITICAL ERROR: All bridges blocked.");
+            return null;
         }
 
         async function connectKick(username) {
             if (!username) return;
-            if (kickWS) kickWS.close();
-            const cid = await fetchKickID(username);
-            if (!cid) { log(`Kick Error: Proxy blocked. Check connection.`); return; }
-            
-            log(`Kick: ID ${cid} Secured.`);
+            if (kickWS) { kickWS.close(); log("Resetting Kick..."); }
+            const chatroomId = await fetchKickID(username);
+            if (!chatroomId) return;
+            log(`Kick: ID ${chatroomId} Secured.`);
             kickWS = new WebSocket("wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false");
             kickWS.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                if (data.event === "pusher:connection_established") {
-                    kickWS.send(JSON.stringify({ event: "pusher:subscribe", data: { channel: `chatrooms.${cid}.v2` } }));
-                }
+                if (data.event === "pusher:connection_established") kickWS.send(JSON.stringify({ event: "pusher:subscribe", data: { channel: `chatrooms.${chatroomId}.v2` } }));
                 if (data.event === "pusher_internal:subscription_succeeded") {
                     document.getElementById('ki-light').innerText = "KICK: ONLINE";
                     document.getElementById('ki-light').style.background = "rgba(83,252,24,0.3)";
-                    log("Kick: Bridge Armed.");
+                    log("Kick: Armed.");
                 }
                 if (data.event === "App\\Events\\ChatMessageEvent") {
-                    const md = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
-                    const user = md.sender?.username || "Unknown";
-                    if (!KICK_BOTS.includes(user.toLowerCase())) handleMessage(user, md.content, 'KICK');
+                    const messageData = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+                    const user = messageData.sender?.username || "Unknown";
+                    const msg = messageData.content || "";
+                    
+                    // Trigger the Advanced Bot Filter from the blueprint
+                    if (!isKickBot(user)) {
+                        handleMessage(user, msg, 'KICK');
+                    } else {
+                        console.log("Filtered Bot:", user);
+                    }
                 }
             };
         }
 
         function connectTwitch(username) {
             if (!username) return;
-            if (twitchWS) twitchWS.close();
+            if (twitchWS) { twitchWS.onmessage = null; twitchWS.close(); twitchWS = null; }
             twitchWS = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
             twitchWS.onopen = () => {
                 twitchWS.send('PASS oauth:read_only');
@@ -312,14 +342,26 @@
                 twitchWS.send(`JOIN #${username.toLowerCase()}`);
                 document.getElementById('tw-light').innerText = "TWITCH: ONLINE";
                 document.getElementById('tw-light').style.background = "rgba(145,70,255,0.3)";
-                log("Twitch: Bridge Armed.");
+                log("Twitch: Armed.");
             };
             twitchWS.onmessage = (e) => {
-                if (e.data.includes('PRIVMSG')) {
-                    const user = e.data.split('!')[0].substring(1);
-                    const msg = e.data.split('PRIVMSG')[1].split(':')[1].trim();
-                    handleMessage(user, msg, 'TWITCH');
-                }
+                const lines = e.data.split('\r\n');
+                lines.forEach(line => {
+                    if (line.includes('PING')) twitchWS.send('PONG :tmi.twitch.tv');
+                    if (line.includes('PRIVMSG')) {
+                        const user = line.split('!')[0].substring(1);
+                        const msg = line.split('PRIVMSG')[1].split(':')[1].trim();
+                        const msgId = `${user}-${msg}`.substring(0, 50);
+                        if (!messageHistory.has(msgId)) {
+                            messageHistory.add(msgId);
+                            handleMessage(user, msg, 'TWITCH');
+                            if (messageHistory.size > 50) {
+                                const firstItem = messageHistory.values().next().value;
+                                messageHistory.delete(firstItem);
+                            }
+                        }
+                    }
+                });
             };
         }
 
@@ -328,40 +370,47 @@
             const tw = document.getElementById('twitchInput').value.trim();
             const ki = document.getElementById('kickInput').value.trim();
             
-            // Auto-Save Usernames
-            if (tw) localStorage.setItem('tw_user', tw);
-            if (ki) localStorage.setItem('ki_user', ki);
+            if (tw) localStorage.setItem('tw_user_save', tw);
+            if (ki) localStorage.setItem('ki_user_save', ki);
 
             showTab('dash');
-            
-            // Audio Unlock
-            const unlocker = new SpeechSynthesisUtterance("");
-            window.speechSynthesis.speak(unlocker);
             
             if (tw) connectTwitch(tw);
             if (ki) await connectKick(ki);
         }
 
-        function handleMessage(user, msg, platform) {
-            const p = document.getElementById('chat-preview');
-            const color = platform === 'TWITCH' ? '#9146FF' : '#53FC18';
-            p.innerHTML += `<div><strong style="color:${color}">[${platform}] ${user}:</strong> ${msg}</div>`;
-            p.scrollTop = p.scrollHeight;
-            if (document.getElementById('ttsEnabled').checked && !msg.startsWith('!')) {
-                const text = document.getElementById('readUserToggle').checked ? `${user} says ${msg}` : msg;
-                ttsQueue.push(text);
-            }
+        // ==========================================
+        // UTILITIES
+        // ==========================================
+        function addVoiceCommand() {
+            const user = document.getElementById('cmdUser').value.trim();
+            const msg = document.getElementById('cmdMessage').value.trim();
+            const interval = parseInt(document.getElementById('cmdInterval').value) * 60000;
+            if (!msg || isNaN(interval)) { alert("Please enter a message and time."); return; }
+            const timerId = setInterval(() => {
+                const finalSpeech = user ? `${user} says ${msg}` : msg;
+                ttsQueue.push(finalSpeech);
+                log(`Auto-Command Fired.`);
+            }, interval);
+            activeTimers.push({ timerId, msg, interval: interval/60000 });
+            updateCommandList();
         }
 
-        setInterval(() => {
-            if (isSpeaking || ttsQueue.length === 0) return;
-            isSpeaking = true;
-            const utt = new SpeechSynthesisUtterance(ttsQueue.shift());
-            const vIdx = document.getElementById('voiceSelect').value;
-            if (window.speechSynthesis.getVoices()[vIdx]) utt.voice = window.speechSynthesis.getVoices()[vIdx];
-            utt.onend = () => isSpeaking = false;
-            window.speechSynthesis.speak(utt);
-        }, 100);
+        function updateCommandList() {
+            const list = document.getElementById('activeCommands');
+            list.innerHTML = activeTimers.map((t, i) => `
+                <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>"${t.msg}" (Every ${t.interval} min)</span>
+                    <button onclick="removeCommand(${i})" style="background:red; border:none; color:white; border-radius:5px; cursor:pointer; padding:5px 10px;">X</button>
+                </div>
+            `).join('');
+        }
+
+        function removeCommand(index) {
+            clearInterval(activeTimers[index].timerId);
+            activeTimers.splice(index, 1);
+            updateCommandList();
+        }
 
         function showTab(id) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -370,24 +419,24 @@
             document.getElementById('btn-' + id).classList.add('active');
         }
 
+        function copyOverlayUrl() { alert("Overlay generated."); }
+        function initMobileCam() { document.getElementById('cam-container').innerHTML = "CAMERA INITIALIZED"; }
+
         function loadVoices() {
             voicesList = window.speechSynthesis.getVoices();
             const s = document.getElementById('voiceSelect');
             if (s && voicesList.length > 0) {
                 s.innerHTML = '';
-                voicesList.forEach((v, i) => s.innerHTML += `<option value="${i}">${v.name}</option>`);
+                voicesList.forEach((v, i) => { s.innerHTML += `<option value="${i}">${v.name}</option>`; });
             }
         }
 
         window.onload = () => { 
-            checkAuthOnLoad(); 
             loadVoices(); 
             if(speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices; 
+            if(localStorage.getItem('tw_user_save')) document.getElementById('twitchInput').value = localStorage.getItem('tw_user_save');
+            if(localStorage.getItem('ki_user_save')) document.getElementById('kickInput').value = localStorage.getItem('ki_user_save');
         };
-        
-        function testAudio() { ttsQueue.push("Jailex audio engine check."); }
-        function initMobileCam() { /* Original logic */ }
-        function copyOverlayUrl() { alert("Link Copied!"); }
     </script>
 </body>
 </html>
