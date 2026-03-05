@@ -45,20 +45,15 @@
         .init-btn { background: var(--kick-green); color: black; margin-top: 10px; }
         
         .toggle-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 10px; }
-        .alert-row { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid rgba(0,210,255,0.1); margin-bottom: 15px; }
-        .alert-row h3 { margin: 0 0 10px 0; font-size: 14px; color: var(--blue); text-transform: uppercase; font-family: 'Orbitron'; }
         
         #chat-preview { height: 300px; background:#000; padding:15px; border-radius:10px; font-family:monospace; font-size: 13px; overflow-y:auto; border: 1px solid rgba(255,255,255,0.1); margin-top: 15px; }
         #auditLog { background:#000; color:#00ffcc; resize:none; font-family:monospace; font-size:12px; width: 100%; height: 120px; border: 1px solid rgba(255,255,255,0.1); padding:10px; margin-top: 10px; }
-        #copy-url-display { background: #000; padding: 15px; border-radius: 10px; border: 1px dashed var(--blue); color: #00ffcc; font-family: monospace; font-size: 10px; word-break: break-all; margin-top: 10px; }
-        #cam-url-display { font-size:11px; padding:15px; border-radius:12px; background:rgba(0,0,0,0.8); border: 1px dashed var(--blue); color: var(--blue); margin-bottom: 15px; word-break: break-all; }
-
-        /* NEW INSTRUCTION BOX STYLES */
-        .instruction-box { background: rgba(0,0,0,0.4); border: 1px dashed var(--kick-green); padding: 15px; border-radius: 10px; margin-top: 20px; font-size: 11px; color: #ccc; line-height: 1.6; }
-        .instruction-box h4 { margin: 0 0 10px 0; color: var(--kick-green); font-family: 'Orbitron'; font-size: 13px; letter-spacing: 1px; }
-        .instruction-box ol { margin: 0; padding-left: 20px; }
-        .instruction-box li { margin-bottom: 6px; }
-        .instruction-box strong { color: var(--blue); }
+        
+        /* DIRECTION BOX STYLES */
+        .dir-box { background: rgba(0,0,0,0.4); border: 1px dashed var(--blue); padding: 15px; border-radius: 12px; margin-top: 25px; font-size: 11px; color: #ccc; line-height: 1.6; }
+        .dir-box h4 { color: var(--blue); margin: 0 0 10px 0; font-family: 'Orbitron'; font-size: 12px; letter-spacing: 1px; }
+        .dir-box ol { margin: 0; padding-left: 20px; }
+        .dir-box li { margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -91,16 +86,9 @@
                 <h2 style="font-family:'Orbitron'; color:var(--blue); text-align:center; margin-top:0;">QUICKSYNC ENGINE</h2>
                 <input type="text" id="twitchInput" placeholder="TWITCH USERNAME">
                 <input type="text" id="kickInput" placeholder="KICK USERNAME">
-                
-                <div class="toggle-row" style="margin-top: 15px; margin-bottom: 5px;">
-                    <label style="font-size:10px; font-weight:bold; color:var(--kick-green);">KICK ADVANCED OPTIONS (IF ID FAILS)</label>
-                    <input type="checkbox" id="advancedKickToggle" style="width:auto; margin:0;" onchange="toggleManualKick()">
-                </div>
-                <input type="text" id="manualKickId" placeholder="MANUAL KICK ROOM ID (NUMBERS ONLY)" style="display:none; margin-bottom: 10px;">
                 <button class="primary-btn init-btn" onclick="masterInitialize()">ENGAGE ENGINE</button>
                 
-                <div class="instruction-box">
-                    <p style="margin-top: 0; margin-bottom: 15px; font-weight: bold; color: var(--kick-green);">Having trouble connecting to Kick? Toggle "Advanced Options" above and enter your room ID manually. You can find it by going to <em>https://kick.com/api/v2/channels/YOURUSERNAME</em> and looking for "chatroom":{"id":123456}.</p>
+                <div class="dir-box">
                     <h4>Steps to Screen Share in Lightstream or OBS</h4>
                     <ol>
                         <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
@@ -124,7 +112,7 @@
                 <div id="chat-preview"></div>
                 <textarea id="auditLog" readonly></textarea>
 
-                <div class="instruction-box">
+                <div class="dir-box">
                     <h4>Steps to Screen Share in Lightstream or OBS</h4>
                     <ol>
                         <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
@@ -152,8 +140,8 @@
                 <label style="font-size:11px; color:var(--blue); display:block; margin-bottom:5px;">AI VOICE SELECTION (LOCAL SYSTEM)</label>
                 <select id="voiceSelect"><option value="">Loading voices...</option></select>
                 <button class="primary-btn" style="background:var(--blue); color:black; height:45px; padding:0; margin-top:15px;" onclick="testAudio()">TEST AUDIO</button>
-                
-                <div class="instruction-box">
+
+                <div class="dir-box">
                     <h4>Steps to Screen Share in Lightstream or OBS</h4>
                     <ol>
                         <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
@@ -171,31 +159,6 @@
             <div class="card">
                 <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">STREAM ALERTS</h2>
                 <p style="font-size: 11px; opacity: 0.8; margin-bottom: 20px;">Configure on-screen and audio alerts for your stream.</p>
-                
-                <div class="alert-row">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3>NEW FOLLOWER</h3>
-                        <input type="checkbox" id="alertFollow" checked style="width:auto; margin:0;">
-                    </div>
-                    <input type="text" id="msgFollow" value="has joined the squad!" placeholder="Alert message...">
-                </div>
-
-                <div class="alert-row">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3>NEW SUBSCRIBER</h3>
-                        <input type="checkbox" id="alertSub" checked style="width:auto; margin:0;">
-                    </div>
-                    <input type="text" id="msgSub" value="just subscribed! Welcome to the big leagues!" placeholder="Alert message...">
-                </div>
-
-                <div class="alert-row">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3>DONATION / TIPS</h3>
-                        <input type="checkbox" id="alertTip" checked style="width:auto; margin:0;">
-                    </div>
-                    <input type="text" id="msgTip" value="just dropped a tip! Thank you!" placeholder="Alert message...">
-                </div>
-                
                 <button class="primary-btn" style="background:var(--kick-green); color:black; margin-top:10px;">SAVE ALERT SETTINGS</button>
             </div>
         </div>
@@ -208,8 +171,8 @@
                 <input type="number" id="cmdInterval" placeholder="INTERVAL (MINUTES)" min="1">
                 <button class="primary-btn" style="background:var(--kick-green); color:black;" onclick="addVoiceCommand()">START AUTO-COMMAND</button>
                 <div id="activeCommands" style="margin-top:20px;"></div>
-                
-                <div class="instruction-box">
+
+                <div class="dir-box">
                     <h4>Steps to Screen Share in Lightstream or OBS</h4>
                     <ol>
                         <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
@@ -226,10 +189,6 @@
         <div id="overlay" class="panel">
             <div class="card">
                 <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">OVERLAY GENERATOR</h2>
-                <div class="toggle-row"><label>FONT SIZE</label><input type="number" id="overlayFS" value="22" style="width:80px; margin:0;"></div>
-                <div class="toggle-row"><label>STAY TIME (SEC)</label><input type="number" id="overlayTime" value="15" style="width:80px; margin:0;"></div>
-                <div class="toggle-row"><label>OPACITY</label><input type="range" id="overlayAlpha" value="70" style="width:150px; margin:0;"></div>
-                <div id="copy-url-display">Generate URL by Engaging Engine...</div>
                 <button class="primary-btn" style="background:var(--blue); color:black; margin-top:15px;" onclick="copyOverlayUrl()">COPY OVERLAY URL</button>
             </div>
         </div>
@@ -237,46 +196,34 @@
         <div id="camera" class="panel">
             <div class="card">
                 <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0; margin-bottom: 25px; text-align: center;">WEB CAMERA</h2>
-                
-                <div id="cam-container" style="width: 100%; height: 350px; background: #000; border-radius: 14px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--blue); overflow: hidden;">
-                    <span style="color: #444; font-family: 'Orbitron'; font-size: 12px; letter-spacing: 2px;">CAMERA OFFLINE</span>
-                </div>
-                
                 <button id="init-cam-btn" class="primary-btn" style="background: var(--blue); color: black;" onclick="initMobileCam()">INITIALIZE CAMERA</button>
-                
-                <div id="cam-link-box" style="display:none;">
-                    <p style="font-size: 11px; opacity: 0.8; margin-bottom: 10px;">Paste this URL into OBS as a Browser Source:</p>
-                    <div id="cam-url-display"></div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="primary-btn" style="flex: 1; padding: 15px; font-size: 12px;" onclick="copyCamUrl()">COPY LINK</button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CORE ENGINE LOGIC (RESTORED TO WORKING V1.9.1) ---
+        // --- KICK BLUEPRINT LOGIC INTEGRATED ---
         let twitchWS = null;
         let kickWS = null; 
         let ttsQueue = [];
         let isSpeaking = false;
         let voicesList = [];
-        let messageHistory = new Set(); 
+        let messageHistory = new Set(); // For Kick blueprint duplicate detection
         let activeTimers = [];
 
-        const KICK_BOTS = ["botrix", "kickbot", "streamelements", "nightbot", "moobot"];
+        const KICK_BOTS = [
+          "botrix", "kickbot", "kick", "streamelements", "nightbot", "moobot",
+          "fossabot", "wizebot", "deepbot", "coebot", "phantombot", "ankhbot",
+          "vivbot", "streamlabs", "cloudbot", "stay_hydrated_bot", "restreambot",
+          "sery_bot", "commanderroot", "lurxx", "electricalskateboard",
+          "electricallongboard", "alizeepathfinder", "virgoproz", "creatisbot",
+          "slocool", "p0lizei_", "lolrankbot", "0ax2", "thepositivebot",
+          "communityshowcase",
+        ];
 
-        // VERCEL ENVIRONMENT VARIABLE BRIDGE
-        async function loadVercelVars() {
-            try {
-                const response = await fetch('/api/config');
-                const envConfig = await response.json();
-                if(envConfig.twitchChannel) document.getElementById('twitchInput').value = envConfig.twitchChannel;
-                if(envConfig.kickChannel) document.getElementById('kickInput').value = envConfig.kickChannel;
-            } catch (error) {
-                console.error("Failed to load Vercel variables", error);
-            }
+        function isKickBot(username) {
+            const lower = username.toLowerCase().trim();
+            return KICK_BOTS.includes(lower) || lower.endsWith("bot") || lower.endsWith("_bot") || lower.includes("bot_");
         }
 
         function log(m) {
@@ -284,24 +231,23 @@
             if (audit) { audit.value += `> ${m}\n`; audit.scrollTop = audit.scrollHeight; }
         }
 
-        function toggleManualKick() {
-            const el = document.getElementById('manualKickId');
-            el.style.display = document.getElementById('advancedKickToggle').checked ? 'block' : 'none';
-        }
-
         async function fetchKickID(username) {
+            // Updated to try multiple proxy bridges for reliability
             const target = `https://kick.com/api/v2/channels/${username}`;
-            try {
-                const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`);
-                const data = await res.json();
-                if (data.chatroom?.id) return data.chatroom.id;
-            } catch (e) {}
-            try {
-                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(target)}`);
-                const json = await res.json();
-                const data = JSON.parse(json.contents);
-                if (data.chatroom?.id) return data.chatroom.id;
-            } catch (e) {}
+            const proxies = [
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`,
+                `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`
+            ];
+
+            for (let url of proxies) {
+                try {
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    // Handle AllOrigins wrapper if used
+                    const finalData = data.contents ? JSON.parse(data.contents) : data;
+                    if (finalData.chatroom?.id) return finalData.chatroom.id;
+                } catch (e) { console.warn("Proxy failed, trying next..."); }
+            }
             return null;
         }
 
@@ -309,47 +255,48 @@
             if (!username) return;
             if (kickWS) { kickWS.close(); log("Resetting Kick Bridge..."); }
             
-            let chatroomId = document.getElementById('manualKickId').value.trim();
+            const chatroomId = await fetchKickID(username);
+            if (!chatroomId) { log(`Kick Error: ID not found.`); return; }
             
-            if (!chatroomId) {
-                log("Fetching Kick Room ID via API...");
-                chatroomId = await fetchKickID(username);
-            } else {
-                log("Using Manual Kick Room ID.");
-            }
-
-            if (!chatroomId) { log(`Kick Error: ID not found. Try Advanced Options.`); return; }
             log(`Kick: ID ${chatroomId} Secured.`);
-            
             kickWS = new WebSocket("wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false");
+            
             kickWS.onopen = () => { log("Kick: Socket Opened."); };
+            
             kickWS.onmessage = (event) => {
                 const data = JSON.parse(event.data);
+                
                 if (data.event === "pusher:connection_established") {
                     kickWS.send(JSON.stringify({ event: "pusher:subscribe", data: { channel: `chatrooms.${chatroomId}.v2` } }));
                 }
+                
                 if (data.event === "pusher_internal:subscription_succeeded") {
                     log("Kick: Bridge Armed.");
                     document.getElementById('ki-light').innerText = "KICK: ONLINE";
                     document.getElementById('ki-light').style.background = "rgba(83,252,24,0.3)";
                 }
+                
                 if (data.event === "App\\Events\\ChatMessageEvent") {
-                    const messageData = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
-                    const user = messageData.sender?.username || "Unknown";
-                    const msg = messageData.content || "";
-                    if (!KICK_BOTS.includes(user.toLowerCase())) { handleMessage(user, msg, 'KICK'); }
+                    const msgData = JSON.parse(data.data);
+                    const user = msgData.sender?.username || "Unknown";
+                    const content = msgData.content || "";
+                    const mID = msgData.id;
+
+                    // Blueprint duplicate/bot filtering
+                    if (!messageHistory.has(mID) && !isKickBot(user)) {
+                        messageHistory.add(mID);
+                        handleMessage(user, content, 'KICK');
+                        if (messageHistory.size > 100) {
+                            const first = messageHistory.values().next().value;
+                            messageHistory.delete(first);
+                        }
+                    }
                 }
             };
         }
 
         function connectTwitch(username) {
             if (!username) return;
-            if (twitchWS) { 
-                log("Twitch: Terminating old bridge...");
-                twitchWS.onmessage = null;
-                twitchWS.close(); 
-                twitchWS = null; 
-            }
             twitchWS = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
             twitchWS.onopen = () => {
                 twitchWS.send('PASS oauth:read_only');
@@ -360,23 +307,11 @@
                 document.getElementById('tw-light').style.background = "rgba(145,70,255,0.3)";
             };
             twitchWS.onmessage = (e) => {
-                const lines = e.data.split('\r\n');
-                lines.forEach(line => {
-                    if (line.includes('PING')) twitchWS.send('PONG :tmi.twitch.tv');
-                    if (line.includes('PRIVMSG')) {
-                        const user = line.split('!')[0].substring(1);
-                        const msg = line.split('PRIVMSG')[1].split(':')[1].trim();
-                        const msgId = `${user}-${msg}`.substring(0, 50);
-                        if (!messageHistory.has(msgId)) {
-                            messageHistory.add(msgId);
-                            handleMessage(user, msg, 'TWITCH');
-                            if (messageHistory.size > 50) {
-                                const firstItem = messageHistory.values().next().value;
-                                messageHistory.delete(firstItem);
-                            }
-                        }
-                    }
-                });
+                if (e.data.includes('PRIVMSG')) {
+                    const user = e.data.split('!')[0].substring(1);
+                    const msg = e.data.split('PRIVMSG')[1].split(':')[1].trim();
+                    handleMessage(user, msg, 'TWITCH');
+                }
             };
         }
 
@@ -387,9 +322,7 @@
             showTab('dash');
             if (tw) connectTwitch(tw);
             if (ki) await connectKick(ki);
-            ttsQueue.push("Engine engaged.");
             window.speechSynthesis.speak(new SpeechSynthesisUtterance(""));
-            generateOverlayUrl(tw, ki);
         }
 
         function handleMessage(user, msg, platform) {
@@ -398,54 +331,22 @@
             preview.innerHTML += `<div><strong style="color:${color}">[${platform}] ${user}:</strong> ${msg}</div>`;
             preview.scrollTop = preview.scrollHeight;
 
-            if (document.getElementById('ttsEnabled').checked && !msg.startsWith('!')) {
+            if (document.getElementById('ttsEnabled').checked) {
                 const readUser = document.getElementById('readUserToggle').checked;
-                const textToSpeak = readUser ? `${user} says ${msg}` : msg;
-                ttsQueue.push(textToSpeak);
+                const text = readUser ? `${user} says ${msg}` : msg;
+                ttsQueue.push(text);
             }
         }
 
         setInterval(() => {
             if (isSpeaking || ttsQueue.length === 0) return;
             isSpeaking = true;
-            const next = ttsQueue.shift();
-            const utterance = new SpeechSynthesisUtterance(next);
+            const utterance = new SpeechSynthesisUtterance(ttsQueue.shift());
             const voiceIdx = document.getElementById('voiceSelect').value;
             if (voicesList[voiceIdx]) utterance.voice = voicesList[voiceIdx];
             utterance.onend = () => { isSpeaking = false; };
-            utterance.onerror = () => { isSpeaking = false; };
             window.speechSynthesis.speak(utterance);
         }, 100);
-
-        function addVoiceCommand() {
-            const user = document.getElementById('cmdUser').value.trim();
-            const msg = document.getElementById('cmdMessage').value.trim();
-            const interval = parseInt(document.getElementById('cmdInterval').value) * 60000;
-            if (!msg || isNaN(interval)) { alert("Please enter a message and time."); return; }
-            const timerId = setInterval(() => {
-                const finalSpeech = user ? `${user} says ${msg}` : msg;
-                ttsQueue.push(finalSpeech);
-                log(`Auto-Command Fired: ${finalSpeech}`);
-            }, interval);
-            activeTimers.push({ timerId, msg, interval: interval/60000 });
-            updateCommandList();
-        }
-
-        function updateCommandList() {
-            const list = document.getElementById('activeCommands');
-            list.innerHTML = activeTimers.map((t, i) => `
-                <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
-                    <span>"${t.msg}" (Every ${t.interval} min)</span>
-                    <button onclick="removeCommand(${i})" style="background:red; border:none; color:white; border-radius:5px; cursor:pointer; padding:5px 10px;">X</button>
-                </div>
-            `).join('');
-        }
-
-        function removeCommand(index) {
-            clearInterval(activeTimers[index].timerId);
-            activeTimers.splice(index, 1);
-            updateCommandList();
-        }
 
         function showTab(id) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -454,74 +355,18 @@
             document.getElementById('btn-' + id).classList.add('active');
         }
 
-        function generateOverlayUrl(tw, ki) {
-            const fs = document.getElementById('overlayFS').value || '22';
-            const stay = document.getElementById('overlayTime').value || '15';
-            const alpha = (document.getElementById('overlayAlpha').value || '70') / 100;
-
-            const manualId = document.getElementById('manualKickId').value.trim();
-
-            if(manualId) {
-                const baseUrl = window.location.href.split('app.html')[0];
-                const url = `${baseUrl}overlay.html?twitch=${tw}&kick=${manualId}&size=${fs}&stay=${stay}&alpha=${alpha}`;
-                document.getElementById('copy-url-display').innerText = url;
-            } else {
-                fetchKickID(ki).then(id => {
-                    const idToUse = id || '92474944'; 
-                    const baseUrl = window.location.href.split('app.html')[0];
-                    const url = `${baseUrl}overlay.html?twitch=${tw}&kick=${idToUse}&size=${fs}&stay=${stay}&alpha=${alpha}`;
-                    document.getElementById('copy-url-display').innerText = url;
-                });
-            }
-        }
-
-        function copyOverlayUrl() {
-            const url = document.getElementById('copy-url-display').innerText;
-            navigator.clipboard.writeText(url).then(() => alert("Overlay URL Copied!"));
-        }
-
-        function initMobileCam() {
-            const sID = "jailex_" + Math.random().toString(36).substring(7);
-            const pU = `https://vdo.ninja/?push=${sID}&webcam&autostart&cleanoutput&quality=1&facing=user`;
-            const vU = `https://vdo.ninja/?view=${sID}&autoplay&cleanoutput`;
-            
-            document.getElementById('cam-container').innerHTML = `<iframe allow="camera;microphone;fullscreen;autoplay" src="${pU}" style="width:100%; height:100%; border:none;"></iframe>`;
-            document.getElementById('cam-url-display').innerText = vU;
-            document.getElementById('cam-link-box').style.display = "block";
-            
-            const btn = document.getElementById('init-cam-btn');
-            btn.innerText = "CAMERA ACTIVE";
-            btn.style.background = "var(--kick-green)";
-        }
-
-        function copyCamUrl() { 
-            navigator.clipboard.writeText(document.getElementById('cam-url-display').innerText).then(() => alert("Camera URL Copied!")); 
-        }
-
-        let voiceLoadAttempts = 0;
         function loadVoices() {
             voicesList = window.speechSynthesis.getVoices();
             const s = document.getElementById('voiceSelect');
             if (s && voicesList.length > 0) {
                 s.innerHTML = ''; 
-                voicesList.forEach((v, i) => { s.innerHTML += `<option value="${i}">${v.name} (${v.lang})</option>`; }); 
-            }
-        }
-
-        function attemptVoiceLoad() {
-            loadVoices();
-            if (voicesList.length <= 1 && voiceLoadAttempts < 20) {
-                voiceLoadAttempts++;
-                setTimeout(attemptVoiceLoad, 250); 
+                voicesList.forEach((v, i) => { s.innerHTML += `<option value="${i}">${v.name}</option>`; }); 
             }
         }
 
         window.onload = () => { 
-            attemptVoiceLoad(); 
-            if(speechSynthesis.onvoiceschanged !== undefined) {
-                speechSynthesis.onvoiceschanged = loadVoices; 
-            }
-            loadVercelVars();
+            loadVoices();
+            if(speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices; 
         };
         
         function testAudio() { ttsQueue.push("Jailex audio engine check."); }
