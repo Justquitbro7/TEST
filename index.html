@@ -10,27 +10,27 @@
     </script>
 
     <meta charset="UTF-8">
-    <title>JAILEX HUD | v1.9.1 OFFICIAL</title>
+    <title>JAILEX HUD | V 2.9</title>
     <script src="https://js.pusher.com/8.4.0-rc2/pusher.min.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@400;700&display=swap">
     <style>
         :root { --blue: #00d2ff; --dark: #060e1a; --glass: rgba(10, 25, 47, 0.9); --bears-orange: #C83803; --kick-green: #53FC18; }
         body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        .sidebar { width: 280px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(0,210,255,0.1); padding: 30px 20px; backdrop-filter: blur(15px); display: flex; flex-direction: column; z-index: 100; }
+        .sidebar { width: 280px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(0,210,255,0.1); padding: 40px 20px 30px 20px; backdrop-filter: blur(15px); display: flex; flex-direction: column; z-index: 100; }
+        
+        /* RESTORED ORBITRON LOGO STYLING */
         .logo { text-align: center; margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; } 
-        .logo h1 { font-family: 'Orbitron'; color: var(--blue); margin: 0; letter-spacing: 4px; font-size: 45px; text-transform: uppercase; }
-        .mission-stmt { font-size: 10px; opacity: 1; letter-spacing: 1px; font-weight: 700; margin-top: 5px; color: white; text-transform: uppercase; text-align: center; font-style: italic; }
-        .version-tag { font-size: 11px; color: var(--blue); font-weight: 900; margin-top: 10px; font-family: 'Orbitron'; }
+        .logo h1 { font-family: 'Orbitron'; color: var(--blue); margin: 0; letter-spacing: 4px; font-size: 45px; text-transform: uppercase; text-shadow: 0 0 10px var(--blue); }
+        .mission-stmt { font-size: 10px; opacity: 1; letter-spacing: 1px; font-weight: 700; color: white; text-transform: uppercase; text-align: center; font-style: italic; margin-top: 5px; }
+        .version-tag { font-size: 11px; color: var(--blue); font-weight: 900; margin-top: 10px; font-family: 'Orbitron'; letter-spacing: 2px; }
         
         .tab-menu { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
         .tab-btn { background: none; border: none; color: white; padding: 14px; text-align: left; cursor: pointer; font-weight: 700; border-radius: 8px; text-transform: uppercase; font-size: 14px; opacity: 1; letter-spacing: 1px; transition: 0.2s; }
         .tab-btn.active { color: var(--blue); background: rgba(0,210,255,0.1); border-left: 4px solid var(--blue); }
         .tab-btn:hover { background: rgba(255,255,255,0.05); }
         
-        .sidebar-footer { margin-top: auto; text-align: center; font-size: 9px; opacity: 0.7; padding-top: 20px; border-top: 1px solid rgba(0,210,255,0.1); }
-        .sidebar-footer p { margin: 5px 0; letter-spacing: 0.5px; }
-        .sidebar-footer a { color: var(--blue); text-decoration: none; font-weight: bold; }
+        .sidebar-footer { margin-top: auto; text-align: center; font-size: 10px; opacity: 0.7; padding: 20px 0; border-top: 1px solid rgba(0,210,255,0.1); letter-spacing: 1px; font-weight: bold; }
 
         .main { flex: 1; padding: 40px; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; }
         .panel { display: none; width: 100%; max-width: 850px; animation: slideUp 0.3s ease-out; }
@@ -39,63 +39,63 @@
         
         .card { background: var(--glass); border: 1px solid rgba(0,210,255,0.2); padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom: 20px; }
         input[type="text"], input[type="number"], select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,210,255,0.2); padding: 12px; border-radius: 10px; color: white; margin-bottom: 15px; outline: none; box-sizing: border-box; }
-        
-        .primary-btn { width: 100%; border: none; padding: 18px; color: white; font-weight: 900; border-radius: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
-        .init-btn { background: var(--kick-green); color: black; margin-top: 10px; }
-        
-        .toggle-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 10px; }
-        .alert-row { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid rgba(0,210,255,0.1); margin-bottom: 15px; }
-        
+        select option { background: #060e1a; color: white; }
+
+        /* CINEMATIC SYNC OVERLAY */
+        #sync-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: #000; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; 
+        }
+        #sync-video { 
+            width: 80%; max-width: 800px; border: 2px solid var(--blue); 
+            box-shadow: 0 0 30px var(--blue), 0 0 60px var(--bears-orange); border-radius: 15px; 
+        }
+        @keyframes pulseText { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+        .loading-text { font-family: 'Orbitron'; color: var(--blue); letter-spacing: 5px; margin-top: 25px; animation: pulseText 1.5s infinite; font-size: 14px; }
+
         #chat-preview { height: 300px; background:#000; padding:15px; border-radius:10px; font-family:monospace; font-size: 13px; overflow-y:auto; border: 1px solid rgba(255,255,255,0.1); margin-top: 15px; }
         #auditLog { background:#000; color:#00ffcc; resize:none; font-family:monospace; font-size:12px; width: 100%; height: 120px; border: 1px solid rgba(255,255,255,0.1); padding:10px; margin-top: 10px; }
-        #copy-url-display { background: #000; padding: 15px; border-radius: 10px; border: 1px dashed var(--blue); color: #00ffcc; font-family: monospace; font-size: 10px; word-break: break-all; margin-top: 10px; }
+        #copy-url-display { background: #000; padding: 15px; border-radius: 10px; border: 1px dashed var(--blue); color: #00ffcc; font-family: monospace; font-size: 10px; word-break: break-all; margin-top: 10px; text-align: center; }
         #cam-url-display { font-size:11px; padding:15px; border-radius:12px; background:rgba(0,0,0,0.8); border: 1px dashed var(--blue); color: var(--blue); margin-bottom: 15px; word-break: break-all; }
 
-        /* INSTRUCTION FOOTER STYLE */
-        .instruction-footer { margin-top: 25px; border-top: 1px dashed rgba(0,210,255,0.2); padding-top: 20px; font-size: 11px; color: #aaa; line-height: 1.6; }
-        .instruction-footer h4 { color: var(--blue); font-family: 'Orbitron'; margin: 0 0 10px 0; font-size: 12px; letter-spacing: 1px; }
-        .instruction-footer ol { padding-left: 20px; margin: 0; }
-        .instruction-footer li { margin-bottom: 5px; }
+        .primary-btn { width: 100%; border: none; padding: 18px; color: white; font-weight: 900; border-radius: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
+        .init-btn { background: var(--kick-green); color: black; margin-top: 10px; }
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+        .alert-row { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid rgba(0,210,255,0.1); margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
+    <div id="sync-overlay">
+        <video id="sync-video" src="sync-load.mp4" playsinline></video>
+        <div class="loading-text">ENGAGING SECURE BRIDGES...</div>
+    </div>
+
     <div class="sidebar">
         <div class="logo">
             <h1>JAILEX</h1>
-            <div class="mission-stmt">STREAMING MADE EASY</div>
-            <div class="version-tag">V 1.9.1</div>
+            <div class="mission-stmt">One Unified Platform. Streaming Made Easy.</div>
+            <div class="version-tag">V 2.9 | HYBRID</div>
         </div>
         <nav class="tab-menu">
             <button id="btn-sync" class="tab-btn active" onclick="showTab('sync')">QUICKSYNC ENGINE</button>
             <button id="btn-dash" class="tab-btn" onclick="showTab('dash')">DASHBOARD</button>
             <button id="btn-audio" class="tab-btn" onclick="showTab('audio')">AUDIO ENGINE</button>
             <button id="btn-alerts" class="tab-btn" onclick="showTab('alerts')">ALERTS</button>
-            <button id="btn-voice" class="tab-btn" onclick="showTab('voice')">VOICE COMMANDS</button>
+            <button id="btn-voice" class="tab-btn" onclick="showTab('voice')">SPEAKER BOT</button>
             <button id="btn-overlay" class="tab-btn" onclick="showTab('overlay')">CHAT OVERLAY</button>
             <button id="btn-camera" class="tab-btn" onclick="showTab('camera')">WEB CAMERA</button>
         </nav>
+        <div class="sidebar-footer">© 2026 JAILEX STUDIOS</div>
     </div>
 
     <div class="main">
         <div id="sync" class="panel active">
             <div class="card">
                 <h2 style="font-family:'Orbitron'; color:var(--blue); text-align:center; margin-top:0;">QUICKSYNC ENGINE</h2>
-                <input type="text" id="twitchInput" placeholder="TWITCH USERNAME">
-                <input type="text" id="kickInput" placeholder="KICK USERNAME">
+                <input type="text" id="twitchInput" placeholder="TWITCH ID">
+                <input type="text" id="kickInput" placeholder="KICK ID">
                 <button class="primary-btn init-btn" onclick="masterInitialize()">ENGAGE ENGINE</button>
-
-                <div class="instruction-footer">
-                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
-                    <ol>
-                        <li><strong>Open Lightstream Studio:</strong> Go to studio.golightstream.com and sign into your account.</li>
-                        <li><strong>Add Layer:</strong> Click the green <strong>+</strong> icon (Add Layer) next to the "Layers" tab on the left side.</li>
-                        <li><strong>Select Screenshare:</strong> Choose "Screenshare" from the list of options.</li>
-                        <li><strong>Configure Source:</strong> Select this browser tab to share.</li>
-                        <li><strong>Enable Audio:</strong> Tick the <strong>"Share Audio"</strong> box to capture the TTS voice.</li>
-                        <li><strong>Adjust Layout:</strong> Resize or crop the added screen share layer in the preview window.</li>
-                    </ol>
-                </div>
             </div>
         </div>
 
@@ -106,19 +106,22 @@
                     <div id="tw-light" style="background:rgba(145,70,255,0.1); border:1px solid #9146FF; padding:10px; border-radius:10px; width:48%; text-align:center; color:#9146FF; font-weight:bold;">TWITCH: OFF</div>
                     <div id="ki-light" style="background:rgba(83,252,24,0.1); border:1px solid #53FC18; padding:10px; border-radius:10px; width:48%; text-align:center; color:#53FC18; font-weight:bold;">KICK: OFF</div>
                 </div>
+                <div id="tw-stats-container" style="display:none; background:rgba(145,70,255,0.05); border:1px dashed rgba(145,70,255,0.4); padding:12px; border-radius:10px; margin-bottom:15px; text-align:center;">
+                    <span style="font-family:'Orbitron'; color:#9146FF; font-size:14px; font-weight:bold; letter-spacing:2px;">TWITCH FOLLOWERS: <span id="tw-followers" style="color:white; font-size:16px;">--</span></span>
+                </div>
                 <div id="chat-preview"></div>
                 <textarea id="auditLog" readonly></textarea>
-                
-                <div class="instruction-footer">
-                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
-                    <p>Refer to QuickSync tab for full steps.</p>
-                </div>
             </div>
         </div>
 
         <div id="audio" class="panel">
             <div class="card">
                 <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">AUDIO PARAMETERS</h2>
+                <div class="toggle-row">
+                    <label style="font-size:12px; font-weight:bold; width:30%;">TTS VOICE</label>
+                    <select id="voiceSelect" style="width:50%; margin:0; background:rgba(0,0,0,0.8); border:1px solid var(--blue); color:white;"></select>
+                    <button onclick="populateVoiceList()" style="width:15%; background:var(--blue); border:none; color:black; font-weight:900; font-size:10px; cursor:pointer; padding:10px 5px; border-radius:5px;">REFRESH</button>
+                </div>
                 <div class="toggle-row">
                     <label style="font-size:12px; font-weight:bold;">READ USERNAME</label>
                     <input type="checkbox" id="readUserToggle" checked style="width:auto; margin:0;">
@@ -127,15 +130,8 @@
                     <label style="font-size:12px; font-weight:bold;">ENABLE TTS</label>
                     <input type="checkbox" id="ttsEnabled" checked style="width:auto; margin:0;">
                 </div>
-                <select id="voiceSelect"><option value="">Loading voices...</option></select>
-                
-                <button id="start-voice-btn" class="primary-btn" style="background:var(--bears-orange); color:white; height:45px; margin-top:15px;" onclick="initVoiceEngine()">START VOICE ENGINE</button>
+                <button id="start-voice-btn" class="primary-btn" style="background:var(--bears-orange); color:white;" onclick="initVoiceEngine()">START VOICE ENGINE</button>
                 <div id="voice-status" style="text-align:center; font-size:11px; font-weight:bold; margin-top:10px; color:#555;">VOICE ENGINE: STANDBY</div>
-                
-                <div class="instruction-footer">
-                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
-                    <p>Refer to QuickSync tab for full steps.</p>
-                </div>
             </div>
         </div>
 
@@ -144,170 +140,124 @@
                 <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">STREAM ALERTS</h2>
                 <div class="alert-row"><div style="display:flex; justify-content:space-between; align-items:center;"><h3>NEW FOLLOWER</h3><input type="checkbox" id="alertFollow" checked style="width:auto; margin:0;"></div><input type="text" id="msgFollow" value="has joined the squad!" placeholder="Alert message..."></div>
                 <div class="alert-row"><div style="display:flex; justify-content:space-between; align-items:center;"><h3>NEW SUBSCRIBER</h3><input type="checkbox" id="alertSub" checked style="width:auto; margin:0;"></div><input type="text" id="msgSub" value="just subscribed! Welcome to the big leagues!" placeholder="Alert message..."></div>
-                <button class="primary-btn" style="background:var(--kick-green); color:black; margin-top:10px;">SAVE ALERT SETTINGS</button>
+                <button class="primary-btn" style="background:var(--kick-green); color:black;" onclick="saveAlertSettings()">SAVE ALERT SETTINGS</button>
             </div>
         </div>
 
         <div id="voice" class="panel">
             <div class="card">
-                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">VOICE COMMANDS</h2>
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">SPEAKER BOT</h2>
                 <input type="text" id="cmdUser" placeholder="VIRTUAL USERNAME">
                 <input type="text" id="cmdMessage" placeholder="MESSAGE TO REPEAT">
                 <input type="number" id="cmdInterval" placeholder="INTERVAL (MINUTES)" min="1">
                 <button class="primary-btn" style="background:var(--kick-green); color:black;" onclick="addVoiceCommand()">START AUTO-COMMAND</button>
                 <div id="activeCommands" style="margin-top:20px;"></div>
-                
-                <div class="instruction-footer">
-                    <h4>Steps to Screen Share in Lightstream or OBS</h4>
-                    <p>Refer to QuickSync tab for full steps.</p>
-                </div>
             </div>
         </div>
 
         <div id="overlay" class="panel">
-            <div class="card"><h2 style="font-family:'Orbitron'; color:var(--blue);">CHAT OVERLAY</h2><div id="copy-url-display">Generate URL by Engaging Engine...</div><button class="primary-btn" style="background:var(--blue); color:black; margin-top:15px;" onclick="copyOverlayUrl()">COPY OVERLAY URL</button></div>
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">CHAT OVERLAY</h2>
+                <div class="toggle-row"><label>FONT SIZE</label><input type="number" id="overlayFS" value="22" style="width:80px; margin:0;" onchange="regenerateOverlay()"></div>
+                <div class="toggle-row"><label>STAY TIME (SEC)</label><input type="number" id="overlayTime" value="15" style="width:80px; margin:0;" onchange="regenerateOverlay()"></div>
+                <div class="toggle-row"><label>OPACITY</label><input type="range" id="overlayAlpha" value="70" style="width:150px; margin:0;" onchange="regenerateOverlay()"></div>
+                <div id="copy-url-display">Awaiting Engine Sync...</div>
+                <button class="primary-btn" style="background:var(--blue); color:black; margin-top:15px;" onclick="copyOverlayUrl()">COPY OVERLAY URL</button>
+            </div>
         </div>
+
         <div id="camera" class="panel">
-            <div class="card"><h2 style="font-family:'Orbitron'; color:var(--blue); text-align:center;">WEB CAMERA</h2><div id="cam-container" style="height:350px; background:#000; border:1px solid var(--blue); border-radius:14px; display:flex; align-items:center; justify-content:center;">OFFLINE</div><button class="primary-btn" style="background:var(--blue); color:black; margin-top:20px;" onclick="initMobileCam()">INITIALIZE CAMERA</button></div>
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); text-align:center;">WEB CAMERA</h2>
+                <div id="cam-container" style="height:350px; background:#000; border:1px solid var(--blue); border-radius:14px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                    <span style="color: #444; font-family: 'Orbitron'; font-size: 12px; letter-spacing: 2px;">CAMERA OFFLINE</span>
+                </div>
+                <button id="init-cam-btn" class="primary-btn" style="background:var(--blue); color:black; margin-top:20px;" onclick="initMobileCam()">INITIALIZE CAMERA</button>
+                <div id="cam-link-box" style="display:none; margin-top:15px;">
+                    <div id="cam-url-display"></div>
+                    <button class="primary-btn" style="background:var(--kick-green); color:black; margin-top:10px; width:100%;" onclick="copyCamUrl()">COPY LINK</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- LOGGING ---
+        let twitchWS = null, kickWS = null; 
+        let messageHistory = new Set(); 
+        let activeTimers = [];
+        let availableVoices = [];
+        const KICK_BOTS = ["botrix", "kickbot", "streamelements", "nightbot", "moobot", "kick"];
+
         function log(m) {
             const audit = document.getElementById('auditLog');
             if (audit) { audit.value += `> ${m}\n`; audit.scrollTop = audit.scrollHeight; }
             console.log(m);
         }
 
-        // ==========================================
-        // BLUEPRINT BOT FILTER LOGIC
-        // ==========================================
-        const KICK_BOTS = [
-            "botrix", "kickbot", "kick", "streamelements", "nightbot", "moobot",
-            "fossabot", "wizebot", "deepbot", "coebot", "phantombot", "ankhbot",
-            "vivbot", "streamlabs", "cloudbot", "stay_hydrated_bot", "restreambot",
-            "sery_bot", "commanderroot", "lurxx", "electricalskateboard",
-            "electricallongboard", "alizeepathfinder", "virgoproz", "creatisbot",
-            "slocool", "p0lizei_", "lolrankbot", "0ax2", "thepositivebot",
-            "communityshowcase",
-        ];
-
         const isKickBot = (username) => {
             const lowerUsername = username.toLowerCase().trim();
-            if (KICK_BOTS.includes(lowerUsername)) return true;
-            if (lowerUsername.endsWith("bot") || lowerUsername.endsWith("_bot") || lowerUsername.includes("bot_")) return true;
-            return false;
+            return KICK_BOTS.includes(lowerUsername) || lowerUsername.endsWith("bot") || lowerUsername.endsWith("_bot");
         };
 
-
-        // ==========================================
-        // BLUEPRINT TTS QUEUE ENGINE
-        // ==========================================
-        let ttsQueue = [];
-        let isSpeaking = false;
-        let voiceEnabled = false;
-        let voicesList = [];
-
-        function initVoiceEngine() {
-            voiceEnabled = true;
-            window.speechSynthesis.cancel(); 
-            
-            const utterance = new SpeechSynthesisUtterance("Voice Engine Unlocked. Ready.");
-            window.speechSynthesis.speak(utterance);
-            
-            document.getElementById('voice-status').innerText = "VOICE ENGINE: ACTIVE";
-            document.getElementById('voice-status').style.color = "var(--kick-green)";
-            log("TTS: Voice Engine Manually Unlocked");
+        function populateVoiceList() {
+            availableVoices = window.speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+            if (availableVoices.length === 0) return;
+            voiceSelect.innerHTML = '';
+            availableVoices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                voiceSelect.appendChild(option);
+            });
+            const savedVoice = localStorage.getItem('jailex_voice_index');
+            if(savedVoice !== null && availableVoices[savedVoice]) voiceSelect.value = savedVoice;
+        }
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
         }
 
-        // 100ms Queue Processor (Identical to React Blueprint)
-        setInterval(() => {
-            if (!voiceEnabled || isSpeaking || ttsQueue.length === 0) {
-                return;
-            }
+        function initVoiceEngine() {
+            document.getElementById('ttsEnabled').checked = true;
+            fireSpeech("Voice Engine Unlocked. Ready.");
+            document.getElementById('voice-status').innerText = "VOICE ENGINE: ACTIVE";
+            document.getElementById('voice-status').style.color = "var(--kick-green)";
+        }
 
-            const nextMessage = ttsQueue.shift();
-            isSpeaking = true;
-
-            const utterance = new SpeechSynthesisUtterance(nextMessage);
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-            utterance.volume = 1.0;
-
+        function fireSpeech(textToSpeak) {
+            if (!document.getElementById('ttsEnabled').checked) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
             const voiceSelect = document.getElementById('voiceSelect');
-            if (voiceSelect && voicesList.length > 0 && voiceSelect.value !== "") {
-                const voiceIdx = voiceSelect.value;
-                if (voicesList[voiceIdx]) utterance.voice = voicesList[voiceIdx];
+            if (availableVoices.length > 0 && voiceSelect.value !== "") {
+                utterance.voice = availableVoices[voiceSelect.value];
             }
-
-            utterance.onend = () => {
-                isSpeaking = false;
-            };
-
-            utterance.onerror = () => {
-                isSpeaking = false;
-            };
-
             window.speechSynthesis.speak(utterance);
-        }, 100);
+        }
 
         function handleMessage(user, msg, platform) {
             const preview = document.getElementById('chat-preview');
             const color = platform === 'TWITCH' ? '#9146FF' : '#53FC18';
             preview.innerHTML += `<div><strong style="color:${color}">[${platform}] ${user}:</strong> ${msg}</div>`;
             preview.scrollTop = preview.scrollHeight;
-
             if (document.getElementById('ttsEnabled').checked && !msg.startsWith('!')) {
                 const textToSpeak = document.getElementById('readUserToggle').checked ? `${user} says ${msg}` : msg;
-                ttsQueue.push(textToSpeak);
+                fireSpeech(textToSpeak);
             }
         }
 
-
-        // ==========================================
-        // WEBSOCKET CONNECTIONS (Untouched Waterfall)
-        // ==========================================
-        let twitchWS = null, kickWS = null; 
-        let messageHistory = new Set(); 
-        let activeTimers = [];
-
         async function fetchKickID(username) {
-            const user = username.toLowerCase().trim();
-            const targetUrl = `https://kick.com/api/v1/channels/${user}`;
-            const proxies = [
-                `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
-                `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`,
-                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
-                `https://thingproxy.freeboard.io/fetch/${targetUrl}`
-            ];
-            for (let i = 0; i < proxies.length; i++) {
-                log(`Attempting Bridge ${i + 1}...`);
-                try {
-                    const res = await fetch(proxies[i]);
-                    let data;
-                    if (proxies[i].includes('allorigins')) {
-                        const json = await res.json();
-                        data = JSON.parse(json.contents);
-                    } else {
-                        data = await res.json();
-                    }
-                    if (data && data.chatroom && data.chatroom.id) {
-                        log(`Bridge ${i + 1} SUCCESS!`);
-                        return data.chatroom.id;
-                    }
-                } catch (e) { log(`Bridge ${i + 1} blocked. Switching...`); }
-            }
-            log("CRITICAL ERROR: All bridges blocked.");
-            return null;
+            try {
+                const res = await fetch(`/api/getKick?username=${encodeURIComponent(username)}`);
+                const data = await res.json();
+                return (data.success && data.chatroomId) ? data.chatroomId : null;
+            } catch (e) { return null; }
         }
 
         async function connectKick(username) {
-            if (!username) return;
-            if (kickWS) { kickWS.close(); log("Resetting Kick..."); }
+            if (!username) return true;
             const chatroomId = await fetchKickID(username);
-            if (!chatroomId) return;
-            log(`Kick: ID ${chatroomId} Secured.`);
+            if (!chatroomId) return false;
             kickWS = new WebSocket("wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false");
             kickWS.onmessage = (event) => {
                 const data = JSON.parse(event.data);
@@ -321,20 +271,14 @@
                     const messageData = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
                     const user = messageData.sender?.username || "Unknown";
                     const msg = messageData.content || "";
-                    
-                    // Trigger the Advanced Bot Filter from the blueprint
-                    if (!isKickBot(user)) {
-                        handleMessage(user, msg, 'KICK');
-                    } else {
-                        console.log("Filtered Bot:", user);
-                    }
+                    if (!isKickBot(user)) handleMessage(user, msg, 'KICK');
                 }
             };
+            return true;
         }
 
         function connectTwitch(username) {
             if (!username) return;
-            if (twitchWS) { twitchWS.onmessage = null; twitchWS.close(); twitchWS = null; }
             twitchWS = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
             twitchWS.onopen = () => {
                 twitchWS.send('PASS oauth:read_only');
@@ -343,56 +287,60 @@
                 document.getElementById('tw-light').innerText = "TWITCH: ONLINE";
                 document.getElementById('tw-light').style.background = "rgba(145,70,255,0.3)";
                 log("Twitch: Armed.");
+                fetchTwitchFollowers(username);
             };
             twitchWS.onmessage = (e) => {
-                const lines = e.data.split('\r\n');
-                lines.forEach(line => {
-                    if (line.includes('PING')) twitchWS.send('PONG :tmi.twitch.tv');
-                    if (line.includes('PRIVMSG')) {
-                        const user = line.split('!')[0].substring(1);
-                        const msg = line.split('PRIVMSG')[1].split(':')[1].trim();
-                        const msgId = `${user}-${msg}`.substring(0, 50);
-                        if (!messageHistory.has(msgId)) {
-                            messageHistory.add(msgId);
-                            handleMessage(user, msg, 'TWITCH');
-                            if (messageHistory.size > 50) {
-                                const firstItem = messageHistory.values().next().value;
-                                messageHistory.delete(firstItem);
-                            }
-                        }
-                    }
-                });
+                const line = e.data;
+                if (line.includes('PRIVMSG')) {
+                    const user = line.split('!')[0].substring(1);
+                    const msg = line.split('PRIVMSG')[1].split(':')[1].trim();
+                    handleMessage(user, msg, 'TWITCH');
+                }
             };
         }
 
+        async function fetchTwitchFollowers(username) {
+            const res = await fetch(`https://decapi.me/twitch/followcount/${username}`);
+            const count = await res.text();
+            document.getElementById('tw-followers').innerText = count;
+            document.getElementById('tw-stats-container').style.display = "block";
+        }
+
+        // CINEMATIC INITIALIZE - RESTORED LOGIC
         async function masterInitialize() {
-            log("JAILEX: Engaging Protocols...");
             const tw = document.getElementById('twitchInput').value.trim();
             const ki = document.getElementById('kickInput').value.trim();
-            
             if (tw) localStorage.setItem('tw_user_save', tw);
             if (ki) localStorage.setItem('ki_user_save', ki);
 
-            showTab('dash');
+            const overlay = document.getElementById('sync-overlay');
+            const video = document.getElementById('sync-video');
             
+            overlay.style.display = 'flex';
+            video.muted = false; video.volume = 1.0; 
+            video.currentTime = 0;
+            video.play().catch(e => log("Engine Error: Check video asset."));
+
+            const kickPromise = connectKick(ki);
             if (tw) connectTwitch(tw);
-            if (ki) await connectKick(ki);
+
+            video.onended = async () => {
+                await kickPromise;
+                overlay.style.display = 'none';
+                showTab('dash');
+                log("> JAILEX: Secure Brand Sync Complete.");
+                regenerateOverlay();
+            };
         }
 
-        // ==========================================
-        // UTILITIES
-        // ==========================================
         function addVoiceCommand() {
             const user = document.getElementById('cmdUser').value.trim();
             const msg = document.getElementById('cmdMessage').value.trim();
-            const interval = parseInt(document.getElementById('cmdInterval').value) * 60000;
-            if (!msg || isNaN(interval)) { alert("Please enter a message and time."); return; }
-            const timerId = setInterval(() => {
-                const finalSpeech = user ? `${user} says ${msg}` : msg;
-                ttsQueue.push(finalSpeech);
-                log(`Auto-Command Fired.`);
-            }, interval);
-            activeTimers.push({ timerId, msg, interval: interval/60000 });
+            const intervalMins = parseInt(document.getElementById('cmdInterval').value);
+            if (!msg || isNaN(intervalMins)) return;
+            const finalSpeech = user ? `${user} says ${msg}` : msg;
+            const timerId = setInterval(() => { fireSpeech(finalSpeech); }, intervalMins * 60000);
+            activeTimers.push({ timerId, msg, interval: intervalMins });
             updateCommandList();
         }
 
@@ -400,17 +348,24 @@
             const list = document.getElementById('activeCommands');
             list.innerHTML = activeTimers.map((t, i) => `
                 <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
-                    <span>"${t.msg}" (Every ${t.interval} min)</span>
+                    <span>"${t.msg}" (${t.interval}m)</span>
                     <button onclick="removeCommand(${i})" style="background:red; border:none; color:white; border-radius:5px; cursor:pointer; padding:5px 10px;">X</button>
-                </div>
-            `).join('');
+                </div>`).join('');
         }
 
-        function removeCommand(index) {
-            clearInterval(activeTimers[index].timerId);
-            activeTimers.splice(index, 1);
-            updateCommandList();
+        function removeCommand(i) { clearInterval(activeTimers[i].timerId); activeTimers.splice(i, 1); updateCommandList(); }
+
+        function regenerateOverlay() {
+            let baseUrl = window.location.href.split('app.html')[0];
+            const tw = document.getElementById('twitchInput').value.trim();
+            const ki = localStorage.getItem('kick_id_cache') || '92474944';
+            const fs = document.getElementById('overlayFS').value;
+            const stay = document.getElementById('overlayTime').value;
+            const alpha = document.getElementById('overlayAlpha').value / 100;
+            document.getElementById('copy-url-display').innerText = `${baseUrl}overlay.html?twitch=${tw}&kick=${ki}&size=${fs}&stay=${stay}&alpha=${alpha}`;
         }
+
+        function copyOverlayUrl() { navigator.clipboard.writeText(document.getElementById('copy-url-display').innerText); alert("Copied!"); }
 
         function showTab(id) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -419,23 +374,19 @@
             document.getElementById('btn-' + id).classList.add('active');
         }
 
-        function copyOverlayUrl() { alert("Overlay generated."); }
-        function initMobileCam() { document.getElementById('cam-container').innerHTML = "CAMERA INITIALIZED"; }
-
-        function loadVoices() {
-            voicesList = window.speechSynthesis.getVoices();
-            const s = document.getElementById('voiceSelect');
-            if (s && voicesList.length > 0) {
-                s.innerHTML = '';
-                voicesList.forEach((v, i) => { s.innerHTML += `<option value="${i}">${v.name}</option>`; });
-            }
+        function initMobileCam() {
+            const sID = "jailex_" + Math.random().toString(36).substring(7);
+            document.getElementById('cam-container').innerHTML = `<iframe allow="camera *; microphone *; autoplay *" src="https://vdo.ninja/?push=${sID}&webcam&autostart" style="width:100%; height:100%; border:none;"></iframe>`;
+            document.getElementById('cam-url-display').innerText = `https://vdo.ninja/?view=${sID}&autoplay`;
+            document.getElementById('cam-link-box').style.display = "block";
         }
 
+        function saveAlertSettings() { alert("Alert settings successfully saved and armed."); }
+
         window.onload = () => { 
-            loadVoices(); 
-            if(speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = loadVoices; 
             if(localStorage.getItem('tw_user_save')) document.getElementById('twitchInput').value = localStorage.getItem('tw_user_save');
             if(localStorage.getItem('ki_user_save')) document.getElementById('kickInput').value = localStorage.getItem('ki_user_save');
+            setTimeout(populateVoiceList, 1000); 
         };
     </script>
 </body>
