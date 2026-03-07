@@ -184,6 +184,7 @@
                 <button class="primary-btn" style="background:var(--kick-green); color:black; margin-top: 15px;" onclick="saveAlertSettings()">SAVE ALERT CONFIG</button>
             </div>
         </div>
+
         <div id="voice" class="panel">
             <div class="card">
                 <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">SPEAKER BOT</h2>
@@ -346,6 +347,7 @@
             document.getElementById('tw-stats-container').style.display = "block";
         }
 
+        /* --- BULLETPROOF INITIALIZE FUNCTION WITH FAIL-SAFE --- */
         async function masterInitialize() {
             const tw = document.getElementById('twitchInput').value.trim();
             const ki = document.getElementById('kickInput').value.trim();
@@ -358,18 +360,36 @@
             overlay.style.display = 'flex';
             video.muted = false; video.volume = 1.0; 
             video.currentTime = 0;
-            video.play().catch(e => log("Engine Error: Check video asset."));
 
-            const kickPromise = connectKick(ki);
+            // Start connections
+            const kickPromise = connectKick(ki).catch(() => { log("Kick API timed out."); return false; });
             if (tw) connectTwitch(tw);
 
-            video.onended = async () => {
+            // Function to drop the overlay and show dashboard
+            const finishLoading = async () => {
                 await kickPromise;
                 overlay.style.display = 'none';
                 showTab('dash');
                 log("> JAILEX: Secure Brand Sync Complete.");
                 regenerateOverlay();
             };
+
+            // If the video plays perfectly
+            video.onended = finishLoading;
+
+            // Try to play the video. If the browser blocks autoplay, skip straight to the dashboard.
+            video.play().catch(e => {
+                log("Video auto-play blocked by browser. Bypassing animation.");
+                finishLoading();
+            });
+
+            // ULTIMATE FAIL-SAFE: If the screen hangs for more than 5 seconds, force it to open
+            setTimeout(() => {
+                if (overlay.style.display === 'flex') {
+                    log("Sync taking too long. Forcing dashboard override.");
+                    finishLoading();
+                }
+            }, 5000);
         }
 
         function addVoiceCommand() {
@@ -420,7 +440,7 @@
             document.getElementById('cam-link-box').style.display = "block";
         }
 
-        /* --- NEW ALERTS LOGIC ADDED HERE --- */
+        /* --- ALERTS LOGIC --- */
         function copyAlertsOverlayUrl() {
             const urlInput = document.getElementById('alertsOverlayUrl');
             urlInput.select();
@@ -457,7 +477,6 @@
             if(localStorage.getItem('ki_user_save')) document.getElementById('kickInput').value = localStorage.getItem('ki_user_save');
             setTimeout(populateVoiceList, 1000); 
 
-            // Load saved alert messages on boot & dropdown change
             const eventSelect = document.getElementById('alertEvent');
             function loadSavedMessage() {
                 const savedData = localStorage.getItem(`jailex_alert_${eventSelect.value}`);
