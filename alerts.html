@@ -11,16 +11,17 @@
         }
         
         #alert-container {
-            margin-top: 50px; background: rgba(6, 14, 26, 0.95);
-            border: 2px solid #00d2ff; border-radius: 8px; padding: 20px 50px; text-align: center;
+            margin-top: 50px; border: 2px solid #00d2ff; border-radius: 8px; padding: 20px 50px; text-align: center;
             opacity: 0; transform: scale(0.8) translateY(-50px);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /* Default background, but JS will override the opacity */
+            background: rgba(6, 14, 26, 0.9); 
         }
 
         .fire-alert { opacity: 1 !important; transform: scale(1) translateY(0) !important; }
 
         .alert-title { font-size: 18px; letter-spacing: 4px; }
-        .alert-user { color: #53FC18; font-size: 36px; margin-top: 5px; text-shadow: 0 0 15px #53FC18; }
+        .alert-user { color: #53FC18; margin-top: 5px; text-shadow: 0 0 15px #53FC18; transition: font-size 0.3s; }
     </style>
 </head>
 <body>
@@ -31,7 +32,6 @@
     </div>
 
     <script>
-        // Open the receiver
         const alertPipe = new BroadcastChannel('jailex_internal_alerts');
         let alertTimeout;
 
@@ -41,20 +41,24 @@
             const actionText = document.getElementById('action-text');
             const userText = document.getElementById('username-text');
             
-            // 1. Update the text
+            // 1. Update text
             actionText.innerText = data.action;
             userText.innerText = data.user;
 
-            // 2. Inject the dynamic neon colors
+            // 2. Apply Custom Settings (Opacity and Font Size)
+            box.style.background = `rgba(6, 14, 26, ${data.opacity})`;
+            userText.style.fontSize = data.fontSize;
+
+            // 3. Inject neon colors
             box.style.borderColor = data.color;
             box.style.boxShadow = `0 0 20px ${data.color}, inset 0 0 15px ${data.color}`;
             actionText.style.color = data.color;
             actionText.style.textShadow = `0 0 10px ${data.color}`;
             
-            // 3. Fire the animation
+            // 4. Fire animation
             box.classList.add('fire-alert');
             
-            // 4. Hide it after the duration finishes
+            // 5. Hide after custom duration
             clearTimeout(alertTimeout);
             alertTimeout = setTimeout(() => {
                 box.classList.remove('fire-alert');
