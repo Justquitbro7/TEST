@@ -19,7 +19,6 @@
         
         .sidebar { width: 280px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(0,210,255,0.1); padding: 40px 20px 30px 20px; backdrop-filter: blur(15px); display: flex; flex-direction: column; z-index: 100; }
         
-        /* RESTORED ORBITRON LOGO STYLING */
         .logo { text-align: center; margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; } 
         .logo h1 { font-family: 'Orbitron'; color: var(--blue); margin: 0; letter-spacing: 4px; font-size: 45px; text-transform: uppercase; text-shadow: 0 0 10px var(--blue); }
         .mission-stmt { font-size: 10px; opacity: 1; letter-spacing: 1px; font-weight: 700; color: white; text-transform: uppercase; text-align: center; font-style: italic; margin-top: 5px; }
@@ -203,7 +202,7 @@
                 <div class="toggle-row"><label>STAY TIME (SEC)</label><input type="number" id="overlayTime" value="15" style="width:80px; margin:0;" onchange="regenerateOverlay()"></div>
                 <div class="toggle-row"><label>OPACITY</label><input type="range" id="overlayAlpha" value="70" style="width:150px; margin:0;" onchange="regenerateOverlay()"></div>
                 <div id="copy-url-display">Awaiting Engine Sync...</div>
-                <button class="primary-btn" style="background:var(--blue); color:black; margin-top:15px;" onclick="copyOverlayUrl()">COPY OVERLAY URL</button>
+                <button class="primary-btn" style="background:var(--blue); color:black; margin-top:15px;" onclick="copyOverlayUrl()">COPY CHAT OVERLAY URL</button>
             </div>
         </div>
 
@@ -347,7 +346,7 @@
             document.getElementById('tw-stats-container').style.display = "block";
         }
 
-        /* --- BULLETPROOF INITIALIZE FUNCTION WITH FAIL-SAFE --- */
+        /* --- BULLETPROOF INITIALIZE FUNCTION --- */
         async function masterInitialize() {
             const tw = document.getElementById('twitchInput').value.trim();
             const ki = document.getElementById('kickInput').value.trim();
@@ -361,11 +360,9 @@
             video.muted = false; video.volume = 1.0; 
             video.currentTime = 0;
 
-            // Start connections
             const kickPromise = connectKick(ki).catch(() => { log("Kick API timed out."); return false; });
             if (tw) connectTwitch(tw);
 
-            // Function to drop the overlay and show dashboard
             const finishLoading = async () => {
                 await kickPromise;
                 overlay.style.display = 'none';
@@ -374,16 +371,13 @@
                 regenerateOverlay();
             };
 
-            // If the video plays perfectly
             video.onended = finishLoading;
 
-            // Try to play the video. If the browser blocks autoplay, skip straight to the dashboard.
             video.play().catch(e => {
                 log("Video auto-play blocked by browser. Bypassing animation.");
                 finishLoading();
             });
 
-            // ULTIMATE FAIL-SAFE: If the screen hangs for more than 5 seconds, force it to open
             setTimeout(() => {
                 if (overlay.style.display === 'flex') {
                     log("Sync taking too long. Forcing dashboard override.");
@@ -414,8 +408,9 @@
 
         function removeCommand(i) { clearInterval(activeTimers[i].timerId); activeTimers.splice(i, 1); updateCommandList(); }
 
+        /* --- FIXED URL PATH GENERATOR --- */
         function regenerateOverlay() {
-            let baseUrl = window.location.href.split('app.html')[0];
+            let baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
             const tw = document.getElementById('twitchInput').value.trim();
             const ki = localStorage.getItem('kick_id_cache') || '92474944';
             const fs = document.getElementById('overlayFS').value;
@@ -424,7 +419,7 @@
             document.getElementById('copy-url-display').innerText = `${baseUrl}overlay.html?twitch=${tw}&kick=${ki}&size=${fs}&stay=${stay}&alpha=${alpha}`;
         }
 
-        function copyOverlayUrl() { navigator.clipboard.writeText(document.getElementById('copy-url-display').innerText); alert("Copied!"); }
+        function copyOverlayUrl() { navigator.clipboard.writeText(document.getElementById('copy-url-display').innerText); alert("Chat Overlay Link Copied!"); }
 
         function showTab(id) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -440,7 +435,7 @@
             document.getElementById('cam-link-box').style.display = "block";
         }
 
-        /* --- ALERTS LOGIC --- */
+        /* --- NEW ALERTS LOGIC --- */
         function copyAlertsOverlayUrl() {
             const urlInput = document.getElementById('alertsOverlayUrl');
             urlInput.select();
@@ -477,6 +472,7 @@
             if(localStorage.getItem('ki_user_save')) document.getElementById('kickInput').value = localStorage.getItem('ki_user_save');
             setTimeout(populateVoiceList, 1000); 
 
+            // Load saved alert messages
             const eventSelect = document.getElementById('alertEvent');
             function loadSavedMessage() {
                 const savedData = localStorage.getItem(`jailex_alert_${eventSelect.value}`);
