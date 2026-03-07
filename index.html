@@ -1,76 +1,478 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>JAILEX | Dashboard</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&display=swap">
-    <style>
-        body { background: #060e1a; color: white; font-family: 'Orbitron', sans-serif; text-align: center; padding-top: 30px; }
-        .panel { background: #112240; padding: 30px; border-radius: 10px; border: 1px solid #ff6b00; display: inline-block; max-width: 500px; }
-        h1 { color: #ff6b00; text-shadow: 0 0 10px #ff6b00; letter-spacing: 2px; }
-        
-        /* The New Settings Panel */
-        .settings-box { background: rgba(0,0,0,0.3); border: 1px solid #00d2ff; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: left; }
-        .setting-row { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .setting-row label { color: #00d2ff; font-size: 14px; }
-        input[type="number"], input[type="range"] { background: #060e1a; color: #53FC18; border: 1px solid #53FC18; font-family: 'Orbitron'; padding: 5px; width: 80px; text-align: center; }
-        input[type="range"] { width: 120px; cursor: pointer; }
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GX292BHWKE"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-GX292BHWKE');
+    </script>
 
-        /* Buttons */
-        .btn {
-            color: black; font-family: 'Orbitron'; font-weight: 900; font-size: 14px; 
-            padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; transition: 0.2s; margin: 5px; width: 100%;
+    <meta charset="UTF-8">
+    <title>JAILEX HUD | V 2.9</title>
+    <script src="https://js.pusher.com/8.4.0-rc2/pusher.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@400;700&display=swap">
+    <style>
+        :root { --blue: #00d2ff; --dark: #060e1a; --glass: rgba(10, 25, 47, 0.9); --bears-orange: #C83803; --kick-green: #53FC18; }
+        body { background: var(--dark); color: white; font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        .sidebar { width: 280px; background: rgba(0,0,0,0.4); border-right: 1px solid rgba(0,210,255,0.1); padding: 40px 20px 30px 20px; backdrop-filter: blur(15px); display: flex; flex-direction: column; z-index: 100; }
+        
+        /* RESTORED ORBITRON LOGO STYLING */
+        .logo { text-align: center; margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; } 
+        .logo h1 { font-family: 'Orbitron'; color: var(--blue); margin: 0; letter-spacing: 4px; font-size: 45px; text-transform: uppercase; text-shadow: 0 0 10px var(--blue); }
+        .mission-stmt { font-size: 10px; opacity: 1; letter-spacing: 1px; font-weight: 700; color: white; text-transform: uppercase; text-align: center; font-style: italic; margin-top: 5px; }
+        .version-tag { font-size: 11px; color: var(--blue); font-weight: 900; margin-top: 10px; font-family: 'Orbitron'; letter-spacing: 2px; }
+        
+        .tab-menu { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+        .tab-btn { background: none; border: none; color: white; padding: 14px; text-align: left; cursor: pointer; font-weight: 700; border-radius: 8px; text-transform: uppercase; font-size: 14px; opacity: 1; letter-spacing: 1px; transition: 0.2s; }
+        .tab-btn.active { color: var(--blue); background: rgba(0,210,255,0.1); border-left: 4px solid var(--blue); }
+        .tab-btn:hover { background: rgba(255,255,255,0.05); }
+        
+        .sidebar-footer { margin-top: auto; text-align: center; font-size: 10px; opacity: 0.7; padding: 20px 0; border-top: 1px solid rgba(0,210,255,0.1); letter-spacing: 1px; font-weight: bold; }
+
+        .main { flex: 1; padding: 40px; display: flex; justify-content: center; align-items: flex-start; overflow-y: auto; }
+        .panel { display: none; width: 100%; max-width: 850px; animation: slideUp 0.3s ease-out; }
+        .panel.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .card { background: var(--glass); border: 1px solid rgba(0,210,255,0.2); padding: 30px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin-bottom: 20px; }
+        input[type="text"], input[type="number"], select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,210,255,0.2); padding: 12px; border-radius: 10px; color: white; margin-bottom: 15px; outline: none; box-sizing: border-box; }
+        select option { background: #060e1a; color: white; }
+
+        /* CINEMATIC SYNC OVERLAY */
+        #sync-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: #000; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; 
         }
-        .btn-follow { background: #00d2ff; box-shadow: 0 0 10px #00d2ff; }
-        .btn-sub { background: #ff6b00; box-shadow: 0 0 10px #ff6b00; }
-        .btn-raid { background: #ff003c; box-shadow: 0 0 10px #ff003c; }
-        .btn:hover { background: white; box-shadow: 0 0 20px white; }
+        #sync-video { 
+            width: 80%; max-width: 800px; border: 2px solid var(--blue); 
+            box-shadow: 0 0 30px var(--blue), 0 0 60px var(--bears-orange); border-radius: 15px; 
+        }
+        @keyframes pulseText { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+        .loading-text { font-family: 'Orbitron'; color: var(--blue); letter-spacing: 5px; margin-top: 25px; animation: pulseText 1.5s infinite; font-size: 14px; }
+
+        #chat-preview { height: 300px; background:#000; padding:15px; border-radius:10px; font-family:monospace; font-size: 13px; overflow-y:auto; border: 1px solid rgba(255,255,255,0.1); margin-top: 15px; }
+        #auditLog { background:#000; color:#00ffcc; resize:none; font-family:monospace; font-size:12px; width: 100%; height: 120px; border: 1px solid rgba(255,255,255,0.1); padding:10px; margin-top: 10px; }
+        #copy-url-display { background: #000; padding: 15px; border-radius: 10px; border: 1px dashed var(--blue); color: #00ffcc; font-family: monospace; font-size: 10px; word-break: break-all; margin-top: 10px; text-align: center; }
+        #cam-url-display { font-size:11px; padding:15px; border-radius:12px; background:rgba(0,0,0,0.8); border: 1px dashed var(--blue); color: var(--blue); margin-bottom: 15px; word-break: break-all; }
+
+        .primary-btn { width: 100%; border: none; padding: 18px; color: white; font-weight: 900; border-radius: 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px; }
+        .init-btn { background: var(--kick-green); color: black; margin-top: 10px; }
+        .toggle-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+        .alert-row { background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid rgba(0,210,255,0.1); margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <div class="panel">
-        <h1>JAILEX ENGINE</h1>
-        
-        <div class="settings-box">
-            <div class="setting-row">
-                <label>Alert Duration (Seconds):</label>
-                <input type="number" id="alert-duration" value="6" min="1" max="20">
-            </div>
-            <div class="setting-row">
-                <label>Background Opacity (0.1 to 1):</label>
-                <input type="range" id="alert-opacity" min="0" max="1" step="0.1" value="0.9">
-            </div>
-            <div class="setting-row">
-                <label>Name Font Size (px):</label>
-                <input type="number" id="alert-size" value="36" min="10" max="80">
+    <div id="sync-overlay">
+        <video id="sync-video" src="sync-load.mp4" playsinline></video>
+        <div class="loading-text">ENGAGING SECURE BRIDGES...</div>
+    </div>
+
+    <div class="sidebar">
+        <div class="logo">
+            <h1>JAILEX</h1>
+            <div class="mission-stmt">One Unified Platform. Streaming Made Easy.</div>
+            <div class="version-tag">V 2.9 | HYBRID</div>
+        </div>
+        <nav class="tab-menu">
+            <button id="btn-sync" class="tab-btn active" onclick="showTab('sync')">QUICKSYNC ENGINE</button>
+            <button id="btn-dash" class="tab-btn" onclick="showTab('dash')">DASHBOARD</button>
+            <button id="btn-audio" class="tab-btn" onclick="showTab('audio')">AUDIO ENGINE</button>
+            <button id="btn-alerts" class="tab-btn" onclick="showTab('alerts')">ALERTS</button>
+            <button id="btn-voice" class="tab-btn" onclick="showTab('voice')">SPEAKER BOT</button>
+            <button id="btn-overlay" class="tab-btn" onclick="showTab('overlay')">CHAT OVERLAY</button>
+            <button id="btn-camera" class="tab-btn" onclick="showTab('camera')">WEB CAMERA</button>
+        </nav>
+        <div class="sidebar-footer">© 2026 JAILEX STUDIOS</div>
+    </div>
+
+    <div class="main">
+        <div id="sync" class="panel active">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); text-align:center; margin-top:0;">QUICKSYNC ENGINE</h2>
+                <input type="text" id="twitchInput" placeholder="TWITCH ID">
+                <input type="text" id="kickInput" placeholder="KICK ID">
+                <button class="primary-btn init-btn" onclick="masterInitialize()">ENGAGE ENGINE</button>
+
+                <div style="margin-top: 25px; border-top: 1px dashed rgba(0,210,255,0.2); padding-top: 20px; font-size: 11px; color: #aaa; line-height: 1.6;">
+                    <h4 style="color: var(--blue); font-family: 'Orbitron'; margin: 0 0 10px 0; font-size: 12px; letter-spacing: 1px;">Directions if you want your viewers to hear the TTS audio:</h4>
+                    <ol style="padding-left: 20px; margin: 0;">
+                        <li style="margin-bottom: 5px;"><strong>Add Source:</strong> In the Sources box, click the + icon.</li>
+                        <li style="margin-bottom: 5px;"><strong>Select Capture Type:</strong> 
+                            <ul style="padding-left: 15px; margin: 5px 0;">
+                                <li><strong>Display Capture:</strong> Selects your entire monitor (best for switching apps).</li>
+                                <li><strong>Window Capture:</strong> Selects a specific application window (best for privacy).</li>
+                            </ul>
+                        </li>
+                        <li style="margin-bottom: 5px;"><strong>Configure:</strong> Select the desired display or window from the dropdown menu and click OK.</li>
+                        <li style="margin-bottom: 5px;"><strong>Adjust Layout:</strong> Resize the capture layer in the preview window to fit your scene.</li>
+                    </ol>
+                </div>
             </div>
         </div>
-        
-        <button class="btn btn-follow" onclick="sendLiveAlert('NEW FOLLOWER', 'JUSTQUITBRO7', '#00d2ff')">TEST FOLLOW</button>
-        <button class="btn btn-sub" onclick="sendLiveAlert('NEW SUBSCRIBER', 'CONSOLE_KING', '#ff6b00')">TEST SUB</button>
-        <button class="btn btn-raid" onclick="sendLiveAlert('INCOMING RAID', 'NINJA (500)', '#ff003c')">TEST RAID</button>
+
+        <div id="dash" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">SYSTEM DASHBOARD</h2>
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                    <div id="tw-light" style="background:rgba(145,70,255,0.1); border:1px solid #9146FF; padding:10px; border-radius:10px; width:48%; text-align:center; color:#9146FF; font-weight:bold;">TWITCH: OFF</div>
+                    <div id="ki-light" style="background:rgba(83,252,24,0.1); border:1px solid #53FC18; padding:10px; border-radius:10px; width:48%; text-align:center; color:#53FC18; font-weight:bold;">KICK: OFF</div>
+                </div>
+                <div id="tw-stats-container" style="display:none; background:rgba(145,70,255,0.05); border:1px dashed rgba(145,70,255,0.4); padding:12px; border-radius:10px; margin-bottom:15px; text-align:center;">
+                    <span style="font-family:'Orbitron'; color:#9146FF; font-size:14px; font-weight:bold; letter-spacing:2px;">TWITCH FOLLOWERS: <span id="tw-followers" style="color:white; font-size:16px;">--</span></span>
+                </div>
+                <div id="chat-preview"></div>
+                <textarea id="auditLog" readonly></textarea>
+            </div>
+        </div>
+
+        <div id="audio" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">AUDIO PARAMETERS</h2>
+                <div class="toggle-row">
+                    <label style="font-size:12px; font-weight:bold; width:30%;">TTS VOICE</label>
+                    <select id="voiceSelect" style="width:50%; margin:0; background:rgba(0,0,0,0.8); border:1px solid var(--blue); color:white;"></select>
+                    <button onclick="populateVoiceList()" style="width:15%; background:var(--blue); border:none; color:black; font-weight:900; font-size:10px; cursor:pointer; padding:10px 5px; border-radius:5px;">REFRESH</button>
+                </div>
+                <div class="toggle-row">
+                    <label style="font-size:12px; font-weight:bold;">READ USERNAME</label>
+                    <input type="checkbox" id="readUserToggle" checked style="width:auto; margin:0;">
+                </div>
+                <div class="toggle-row">
+                    <label style="font-size:12px; font-weight:bold;">ENABLE TTS</label>
+                    <input type="checkbox" id="ttsEnabled" checked style="width:auto; margin:0;">
+                </div>
+                <button id="start-voice-btn" class="primary-btn" style="background:var(--bears-orange); color:white;" onclick="initVoiceEngine()">START VOICE ENGINE</button>
+                <div id="voice-status" style="text-align:center; font-size:11px; font-weight:bold; margin-top:10px; color:#555;">VOICE ENGINE: STANDBY</div>
+            </div>
+        </div>
+
+        <div id="alerts" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">STREAM ALERTS</h2>
+                
+                <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 14px; color: var(--blue);">ALERTS OVERLAY URL</h3>
+                    <p style="font-size: 11px; color: #aaa;">Copy this link and paste it as a Web Source into your broadcasting software.</p>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="alertsOverlayUrl" value="https://justquitbro7.github.io/jailexbeta/alerts-overlay.html" readonly style="margin:0; flex:1;">
+                        <button onclick="copyAlertsOverlayUrl()" class="primary-btn" id="copyAlertsBtn" style="width: auto; padding: 12px 20px; background: transparent; border: 1px solid var(--blue); color: var(--blue);">COPY</button>
+                    </div>
+                </div>
+
+                <hr style="border: 0; border-top: 1px dashed rgba(0,210,255,0.2); margin: 20px 0;">
+
+                <h3 style="font-size: 14px; color: var(--blue);">CUSTOMIZE MESSAGES</h3>
+                <div class="toggle-row" style="flex-direction: column; align-items: flex-start;">
+                    <label style="font-size:12px; font-weight:bold; margin-bottom: 5px;">EVENT TRIGGER</label>
+                    <select id="alertEvent" style="margin-bottom: 10px;">
+                        <option value="follower">New Follower</option>
+                        <option value="subscriber">New Subscriber</option>
+                        <option value="donation">Donation</option>
+                    </select>
+                </div>
+
+                <div class="toggle-row" style="flex-direction: column; align-items: flex-start;">
+                    <label style="font-size:12px; font-weight:bold; margin-bottom: 5px;">CUSTOM MESSAGE</label>
+                    <input type="text" id="alertMessage" placeholder="e.g., {user} joined the squad!" style="margin-bottom: 5px;">
+                    <small style="color: #aaa; font-size: 10px;">Pro Tip: Type {user} exactly like that to pull in the viewer's username.</small>
+                </div>
+
+                <button class="primary-btn" style="background:var(--kick-green); color:black; margin-top: 15px;" onclick="saveAlertSettings()">SAVE ALERT CONFIG</button>
+            </div>
+        </div>
+        <div id="voice" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">SPEAKER BOT</h2>
+                <input type="text" id="cmdUser" placeholder="VIRTUAL USERNAME">
+                <input type="text" id="cmdMessage" placeholder="MESSAGE TO REPEAT">
+                <input type="number" id="cmdInterval" placeholder="INTERVAL (MINUTES)" min="1">
+                <button class="primary-btn" style="background:var(--kick-green); color:black;" onclick="addVoiceCommand()">START AUTO-COMMAND</button>
+                <div id="activeCommands" style="margin-top:20px;"></div>
+            </div>
+        </div>
+
+        <div id="overlay" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); margin-top:0;">CHAT OVERLAY</h2>
+                <div class="toggle-row"><label>FONT SIZE</label><input type="number" id="overlayFS" value="22" style="width:80px; margin:0;" onchange="regenerateOverlay()"></div>
+                <div class="toggle-row"><label>STAY TIME (SEC)</label><input type="number" id="overlayTime" value="15" style="width:80px; margin:0;" onchange="regenerateOverlay()"></div>
+                <div class="toggle-row"><label>OPACITY</label><input type="range" id="overlayAlpha" value="70" style="width:150px; margin:0;" onchange="regenerateOverlay()"></div>
+                <div id="copy-url-display">Awaiting Engine Sync...</div>
+                <button class="primary-btn" style="background:var(--blue); color:black; margin-top:15px;" onclick="copyOverlayUrl()">COPY OVERLAY URL</button>
+            </div>
+        </div>
+
+        <div id="camera" class="panel">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--blue); text-align:center;">WEB CAMERA</h2>
+                <div id="cam-container" style="height:350px; background:#000; border:1px solid var(--blue); border-radius:14px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                    <span style="color: #444; font-family: 'Orbitron'; font-size: 12px; letter-spacing: 2px;">CAMERA OFFLINE</span>
+                </div>
+                <button id="init-cam-btn" class="primary-btn" style="background:var(--blue); color:black; margin-top:20px;" onclick="initMobileCam()">INITIALIZE CAMERA</button>
+                <div id="cam-link-box" style="display:none; margin-top:15px;">
+                    <div id="cam-url-display"></div>
+                    <button class="primary-btn" style="background:var(--kick-green); color:black; margin-top:10px; width:100%;" onclick="copyCamUrl()">COPY LINK</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const alertPipe = new BroadcastChannel('jailex_internal_alerts');
+        let twitchWS = null, kickWS = null; 
+        let messageHistory = new Set(); 
+        let activeTimers = [];
+        let availableVoices = [];
+        const KICK_BOTS = ["botrix", "kickbot", "streamelements", "nightbot", "moobot", "kick"];
 
-        function sendLiveAlert(actionType, username, glowColor) {
-            // Grab the numbers from your new settings boxes
-            const durationSecs = document.getElementById('alert-duration').value;
-            const opacityVal = document.getElementById('alert-opacity').value;
-            const fontSizeVal = document.getElementById('alert-size').value;
-
-            // Send everything to the canvas
-            alertPipe.postMessage({
-                action: actionType,
-                user: username,
-                color: glowColor,
-                duration: durationSecs * 1000, // Converts seconds to milliseconds
-                opacity: opacityVal,
-                fontSize: fontSizeVal + 'px'
-            });
+        function log(m) {
+            const audit = document.getElementById('auditLog');
+            if (audit) { audit.value += `> ${m}\n`; audit.scrollTop = audit.scrollHeight; }
+            console.log(m);
         }
+
+        const isKickBot = (username) => {
+            const lowerUsername = username.toLowerCase().trim();
+            return KICK_BOTS.includes(lowerUsername) || lowerUsername.endsWith("bot") || lowerUsername.endsWith("_bot");
+        };
+
+        function populateVoiceList() {
+            availableVoices = window.speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+            if (availableVoices.length === 0) return;
+            voiceSelect.innerHTML = '';
+            availableVoices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                voiceSelect.appendChild(option);
+            });
+            const savedVoice = localStorage.getItem('jailex_voice_index');
+            if(savedVoice !== null && availableVoices[savedVoice]) voiceSelect.value = savedVoice;
+        }
+        if (typeof speechSynthesis !== 'undefined' && speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+
+        function initVoiceEngine() {
+            document.getElementById('ttsEnabled').checked = true;
+            fireSpeech("Voice Engine Unlocked. Ready.");
+            document.getElementById('voice-status').innerText = "VOICE ENGINE: ACTIVE";
+            document.getElementById('voice-status').style.color = "var(--kick-green)";
+        }
+
+        function fireSpeech(textToSpeak) {
+            if (!document.getElementById('ttsEnabled').checked) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            const voiceSelect = document.getElementById('voiceSelect');
+            if (availableVoices.length > 0 && voiceSelect.value !== "") {
+                utterance.voice = availableVoices[voiceSelect.value];
+            }
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function handleMessage(user, msg, platform) {
+            const preview = document.getElementById('chat-preview');
+            const color = platform === 'TWITCH' ? '#9146FF' : '#53FC18';
+            preview.innerHTML += `<div><strong style="color:${color}">[${platform}] ${user}:</strong> ${msg}</div>`;
+            preview.scrollTop = preview.scrollHeight;
+            if (document.getElementById('ttsEnabled').checked && !msg.startsWith('!')) {
+                const textToSpeak = document.getElementById('readUserToggle').checked ? `${user} says ${msg}` : msg;
+                fireSpeech(textToSpeak);
+            }
+        }
+
+        async function fetchKickID(username) {
+            try {
+                const res = await fetch(`/api/getKick?username=${encodeURIComponent(username)}`);
+                const data = await res.json();
+                return (data.success && data.chatroomId) ? data.chatroomId : null;
+            } catch (e) { return null; }
+        }
+
+        async function connectKick(username) {
+            if (!username) return true;
+            const chatroomId = await fetchKickID(username);
+            if (!chatroomId) return false;
+            kickWS = new WebSocket("wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false");
+            kickWS.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.event === "pusher:connection_established") kickWS.send(JSON.stringify({ event: "pusher:subscribe", data: { channel: `chatrooms.${chatroomId}.v2` } }));
+                if (data.event === "pusher_internal:subscription_succeeded") {
+                    document.getElementById('ki-light').innerText = "KICK: ONLINE";
+                    document.getElementById('ki-light').style.background = "rgba(83,252,24,0.3)";
+                    log("Kick: Armed.");
+                }
+                if (data.event === "App\\Events\\ChatMessageEvent") {
+                    const messageData = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
+                    const user = messageData.sender?.username || "Unknown";
+                    const msg = messageData.content || "";
+                    if (!isKickBot(user)) handleMessage(user, msg, 'KICK');
+                }
+            };
+            return true;
+        }
+
+        function connectTwitch(username) {
+            if (!username) return;
+            twitchWS = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+            twitchWS.onopen = () => {
+                twitchWS.send('PASS oauth:read_only');
+                twitchWS.send('NICK justinfan' + Math.floor(Math.random() * 99999));
+                twitchWS.send(`JOIN #${username.toLowerCase()}`);
+                document.getElementById('tw-light').innerText = "TWITCH: ONLINE";
+                document.getElementById('tw-light').style.background = "rgba(145,70,255,0.3)";
+                log("Twitch: Armed.");
+                fetchTwitchFollowers(username);
+            };
+            twitchWS.onmessage = (e) => {
+                const line = e.data;
+                if (line.includes('PRIVMSG')) {
+                    const user = line.split('!')[0].substring(1);
+                    const msg = line.split('PRIVMSG')[1].split(':')[1].trim();
+                    handleMessage(user, msg, 'TWITCH');
+                }
+            };
+        }
+
+        async function fetchTwitchFollowers(username) {
+            const res = await fetch(`https://decapi.me/twitch/followcount/${username}`);
+            const count = await res.text();
+            document.getElementById('tw-followers').innerText = count;
+            document.getElementById('tw-stats-container').style.display = "block";
+        }
+
+        async function masterInitialize() {
+            const tw = document.getElementById('twitchInput').value.trim();
+            const ki = document.getElementById('kickInput').value.trim();
+            if (tw) localStorage.setItem('tw_user_save', tw);
+            if (ki) localStorage.setItem('ki_user_save', ki);
+
+            const overlay = document.getElementById('sync-overlay');
+            const video = document.getElementById('sync-video');
+            
+            overlay.style.display = 'flex';
+            video.muted = false; video.volume = 1.0; 
+            video.currentTime = 0;
+            video.play().catch(e => log("Engine Error: Check video asset."));
+
+            const kickPromise = connectKick(ki);
+            if (tw) connectTwitch(tw);
+
+            video.onended = async () => {
+                await kickPromise;
+                overlay.style.display = 'none';
+                showTab('dash');
+                log("> JAILEX: Secure Brand Sync Complete.");
+                regenerateOverlay();
+            };
+        }
+
+        function addVoiceCommand() {
+            const user = document.getElementById('cmdUser').value.trim();
+            const msg = document.getElementById('cmdMessage').value.trim();
+            const intervalMins = parseInt(document.getElementById('cmdInterval').value);
+            if (!msg || isNaN(intervalMins)) return;
+            const finalSpeech = user ? `${user} says ${msg}` : msg;
+            const timerId = setInterval(() => { fireSpeech(finalSpeech); }, intervalMins * 60000);
+            activeTimers.push({ timerId, msg, interval: intervalMins });
+            updateCommandList();
+        }
+
+        function updateCommandList() {
+            const list = document.getElementById('activeCommands');
+            list.innerHTML = activeTimers.map((t, i) => `
+                <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>"${t.msg}" (${t.interval}m)</span>
+                    <button onclick="removeCommand(${i})" style="background:red; border:none; color:white; border-radius:5px; cursor:pointer; padding:5px 10px;">X</button>
+                </div>`).join('');
+        }
+
+        function removeCommand(i) { clearInterval(activeTimers[i].timerId); activeTimers.splice(i, 1); updateCommandList(); }
+
+        function regenerateOverlay() {
+            let baseUrl = window.location.href.split('app.html')[0];
+            const tw = document.getElementById('twitchInput').value.trim();
+            const ki = localStorage.getItem('kick_id_cache') || '92474944';
+            const fs = document.getElementById('overlayFS').value;
+            const stay = document.getElementById('overlayTime').value;
+            const alpha = document.getElementById('overlayAlpha').value / 100;
+            document.getElementById('copy-url-display').innerText = `${baseUrl}overlay.html?twitch=${tw}&kick=${ki}&size=${fs}&stay=${stay}&alpha=${alpha}`;
+        }
+
+        function copyOverlayUrl() { navigator.clipboard.writeText(document.getElementById('copy-url-display').innerText); alert("Copied!"); }
+
+        function showTab(id) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('btn-' + id).classList.add('active');
+        }
+
+        function initMobileCam() {
+            const sID = "jailex_" + Math.random().toString(36).substring(7);
+            document.getElementById('cam-container').innerHTML = `<iframe allow="camera *; microphone *; autoplay *" src="https://vdo.ninja/?push=${sID}&webcam&autostart" style="width:100%; height:100%; border:none;"></iframe>`;
+            document.getElementById('cam-url-display').innerText = `https://vdo.ninja/?view=${sID}&autoplay`;
+            document.getElementById('cam-link-box').style.display = "block";
+        }
+
+        /* --- NEW ALERTS LOGIC ADDED HERE --- */
+        function copyAlertsOverlayUrl() {
+            const urlInput = document.getElementById('alertsOverlayUrl');
+            urlInput.select();
+            urlInput.setSelectionRange(0, 99999); 
+            navigator.clipboard.writeText(urlInput.value).then(() => {
+                const btn = document.getElementById('copyAlertsBtn');
+                btn.innerText = 'COPIED!';
+                btn.style.background = 'var(--blue)';
+                btn.style.color = '#000';
+                setTimeout(() => {
+                    btn.innerText = 'COPY';
+                    btn.style.background = 'transparent';
+                    btn.style.color = 'var(--blue)';
+                }, 2000);
+            }).catch(err => console.error('Failed to copy text: ', err));
+        }
+
+        function saveAlertSettings() {
+            const eventType = document.getElementById('alertEvent').value;
+            const message = document.getElementById('alertMessage').value;
+
+            if (!message) {
+                alert("Please enter a custom message.");
+                return;
+            }
+
+            const alertConfig = { message: message };
+            localStorage.setItem(`jailex_alert_${eventType}`, JSON.stringify(alertConfig));
+            alert(`${eventType.toUpperCase()} alert config saved successfully!`);
+        }
+
+        window.onload = () => { 
+            if(localStorage.getItem('tw_user_save')) document.getElementById('twitchInput').value = localStorage.getItem('tw_user_save');
+            if(localStorage.getItem('ki_user_save')) document.getElementById('kickInput').value = localStorage.getItem('ki_user_save');
+            setTimeout(populateVoiceList, 1000); 
+
+            // Load saved alert messages on boot & dropdown change
+            const eventSelect = document.getElementById('alertEvent');
+            function loadSavedMessage() {
+                const savedData = localStorage.getItem(`jailex_alert_${eventSelect.value}`);
+                if (savedData) {
+                    const config = JSON.parse(savedData);
+                    document.getElementById('alertMessage').value = config.message;
+                } else {
+                    document.getElementById('alertMessage').value = "";
+                }
+            }
+            if(eventSelect) {
+                loadSavedMessage();
+                eventSelect.addEventListener('change', loadSavedMessage);
+            }
+        };
     </script>
 </body>
 </html>
