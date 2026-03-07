@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>JAILEX | Dashboard</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&display=swap">
     <style>
-        body { background: #060e1a; color: white; font-family: 'Orbitron', sans-serif; text-align: center; padding-top: 50px; }
-        .panel { background: #112240; padding: 30px; border-radius: 10px; border: 1px solid #ff6b00; display: inline-block; }
+        body { background: #060e1a; color: white; font-family: 'Orbitron', sans-serif; text-align: center; padding-top: 30px; }
+        .panel { background: #112240; padding: 30px; border-radius: 10px; border: 1px solid #ff6b00; display: inline-block; max-width: 500px; }
         h1 { color: #ff6b00; text-shadow: 0 0 10px #ff6b00; letter-spacing: 2px; }
         
-        /* The Sci-Fi Buttons */
+        /* The New Settings Panel */
+        .settings-box { background: rgba(0,0,0,0.3); border: 1px solid #00d2ff; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: left; }
+        .setting-row { margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .setting-row label { color: #00d2ff; font-size: 14px; }
+        input[type="number"], input[type="range"] { background: #060e1a; color: #53FC18; border: 1px solid #53FC18; font-family: 'Orbitron'; padding: 5px; width: 80px; text-align: center; }
+        input[type="range"] { width: 120px; cursor: pointer; }
+
+        /* Buttons */
         .btn {
             color: black; font-family: 'Orbitron'; font-weight: 900; font-size: 14px; 
-            padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; transition: 0.2s; margin: 5px;
+            padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; transition: 0.2s; margin: 5px; width: 100%;
         }
         .btn-follow { background: #00d2ff; box-shadow: 0 0 10px #00d2ff; }
         .btn-sub { background: #ff6b00; box-shadow: 0 0 10px #ff6b00; }
@@ -23,8 +30,22 @@
 <body>
 
     <div class="panel">
-        <h1>JAILEX ENGINE CONTROLS</h1>
-        <p style="color: #00d2ff;">Make sure alerts.html is open in another tab.</p>
+        <h1>JAILEX ENGINE</h1>
+        
+        <div class="settings-box">
+            <div class="setting-row">
+                <label>Alert Duration (Seconds):</label>
+                <input type="number" id="alert-duration" value="6" min="1" max="20">
+            </div>
+            <div class="setting-row">
+                <label>Background Opacity (0.1 to 1):</label>
+                <input type="range" id="alert-opacity" min="0" max="1" step="0.1" value="0.9">
+            </div>
+            <div class="setting-row">
+                <label>Name Font Size (px):</label>
+                <input type="number" id="alert-size" value="36" min="10" max="80">
+            </div>
+        </div>
         
         <button class="btn btn-follow" onclick="sendLiveAlert('NEW FOLLOWER', 'JUSTQUITBRO7', '#00d2ff')">TEST FOLLOW</button>
         <button class="btn btn-sub" onclick="sendLiveAlert('NEW SUBSCRIBER', 'CONSOLE_KING', '#ff6b00')">TEST SUB</button>
@@ -32,17 +53,23 @@
     </div>
 
     <script>
-        // Open the transmitter
         const alertPipe = new BroadcastChannel('jailex_internal_alerts');
 
         function sendLiveAlert(actionType, username, glowColor) {
+            // Grab the numbers from your new settings boxes
+            const durationSecs = document.getElementById('alert-duration').value;
+            const opacityVal = document.getElementById('alert-opacity').value;
+            const fontSizeVal = document.getElementById('alert-size').value;
+
+            // Send everything to the canvas
             alertPipe.postMessage({
                 action: actionType,
                 user: username,
                 color: glowColor,
-                duration: 6000 // Stays on screen for 6 seconds
+                duration: durationSecs * 1000, // Converts seconds to milliseconds
+                opacity: opacityVal,
+                fontSize: fontSizeVal + 'px'
             });
-            console.log("Signal Sent: " + actionType);
         }
     </script>
 </body>
